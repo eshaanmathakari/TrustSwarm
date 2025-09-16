@@ -19,6 +19,9 @@ module.exports = {
   // Mistral API key for Coral Protocol MCP
   MISTRAL_API_KEY: process.env.MISTRAL_API_KEY,
   
+  // Key encryption for secure storage
+  KEY_ENCRYPTION_SECRET: process.env.KEY_ENCRYPTION_SECRET,
+  
   // Security settings
   CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:3000',
   RATE_LIMIT_WINDOW: parseInt(process.env.RATE_LIMIT_WINDOW) || 900000, // 15 minutes

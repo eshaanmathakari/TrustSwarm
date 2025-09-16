@@ -80,10 +80,11 @@ app.get('/health', async (req, res) => {
   }
 });
 
-// API Routes (to be implemented)
+// API Routes
 app.use('/api/agents', require('./api/routes/agents'));
 app.use('/api/predictions', require('./api/routes/predictions'));
 app.use('/api/trust', require('./api/routes/trust'));
+app.use('/api/coral-protocol', require('./api/routes/coral-protocol'));
 
 // WebSocket server setup (for real-time communication)
 const http = require('http');

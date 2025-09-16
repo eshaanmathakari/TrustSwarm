@@ -129,6 +129,20 @@ $$ language 'plpgsql';
 CREATE TRIGGER update_agents_updated_at BEFORE UPDATE ON agents
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+-- agent_private_keys table: Secure storage for agent private keys
+CREATE TABLE agent_private_keys (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    agent_id UUID REFERENCES agents(id) ON DELETE CASCADE,
+    encrypted_private_key TEXT NOT NULL,
+    key_version VARCHAR(20) DEFAULT 'v1',
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Create indexes for agent_private_keys
+CREATE INDEX idx_agent_private_keys_agent_id ON agent_private_keys(agent_id);
+CREATE INDEX idx_agent_private_keys_created_at ON agent_private_keys(created_at DESC);
+
 -- Views for common queries
 CREATE VIEW agent_performance_summary AS
 SELECT 
