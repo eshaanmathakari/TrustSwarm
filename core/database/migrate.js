@@ -174,6 +174,7 @@ class DatabaseMigrator {
       const dropQueries = [
         'DROP TABLE IF EXISTS voice_verifications CASCADE;',
         'DROP TABLE IF EXISTS agent_communications CASCADE;',
+        'DROP TABLE IF EXISTS agent_private_keys CASCADE;',
         'DROP TABLE IF EXISTS trust_scores CASCADE;',
         'DROP TABLE IF EXISTS predictions CASCADE;',
         'DROP TABLE IF EXISTS agents CASCADE;',
