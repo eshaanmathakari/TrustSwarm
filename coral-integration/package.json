@@ -1,0 +1,32 @@
+{
+  "name": "trustswarm-coral-integration",
+  "version": "1.0.0",
+  "description": "Coral Protocol integration for TrustSwarm agents",
+  "main": "base-coral-agent.js",
+  "type": "module",
+  "scripts": {
+    "test": "node test-coral-agent.js",
+    "start": "node examples/trustswarm-agent.js",
+    "dev": "node --watch examples/trustswarm-agent.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "axios": "^1.6.0",
+    "eventsource": "^2.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  },
+  "keywords": [
+    "coral-protocol",
+    "mcp",
+    "multi-agent",
+    "trustswarm",
+    "ai-agents"
+  ],
+  "author": "TrustSwarm Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

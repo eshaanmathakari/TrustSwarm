@@ -81,6 +81,7 @@ app.get('/health', async (req, res) => {
 });
 
 // API Routes
+app.use('/api', require('./api/routes/index'));
 app.use('/api/agents', require('./api/routes/agents'));
 app.use('/api/predictions', require('./api/routes/predictions'));
 app.use('/api/trust', require('./api/routes/trust'));
@@ -89,9 +90,19 @@ app.use('/api/coral-protocol', require('./api/routes/coral-protocol'));
 // WebSocket server setup (for real-time communication)
 const http = require('http');
 const WebSocket = require('ws');
+const PredictionWebSocketServer = require('./api/websockets/prediction-server');
 
 const server = http.createServer(app);
+
+// Initialize prediction WebSocket server
+const predictionWSS = new PredictionWebSocketServer(config.WEBSOCKET_PORT);
+
+// Legacy WebSocket server for general communication
 const wss = new WebSocket.Server({ 
+<<<<<<< Current (Your changes)
+=======
+  port: config.WEBSOCKET_PORT + 1,
+>>>>>>> Incoming (Background Agent changes)
   server: server 
 });
 
@@ -181,7 +192,8 @@ async function startServer() {
     // Start HTTP server
     server.listen(PORT, () => {
       logger.info(`🚀 TrustSwarm server started on port ${PORT}`);
-      logger.info(`🌐 WebSocket server started on port ${config.WEBSOCKET_PORT}`);
+      logger.info(`🌐 Prediction WebSocket server started on port ${config.WEBSOCKET_PORT}`);
+      logger.info(`🌐 General WebSocket server started on port ${config.WEBSOCKET_PORT + 1}`);
       logger.info(`📊 Environment: ${config.NODE_ENV}`);
     });
   } catch (error) {
