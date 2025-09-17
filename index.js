@@ -92,7 +92,6 @@ const WebSocket = require('ws');
 
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ 
-  port: config.WEBSOCKET_PORT,
   server: server 
 });
 
