@@ -55,7 +55,7 @@ show_usage() {
     echo "  $0                                    # Run full pipeline with defaults"
     echo "  $0 -a scrape -l 10                   # Scrape 10 events per category"
     echo "  $0 -a metrics                        # Calculate trust metrics only"
-    echo "  $0 -c sports economics -l 25         # Scrape sports and economics only"
+    echo "  $0 -c \"sports economics\" -l 25       # Scrape sports and economics only"
     echo "  $0 -v                                # Run with visible browser for debugging"
     echo "  $0 -a status                         # Check pipeline status"
 }
@@ -68,6 +68,7 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         -c|--categories)
+            # Handle categories with proper quoting
             CATEGORIES="$2"
             shift 2
             ;;
@@ -128,7 +129,7 @@ fi
 
 # Check if requirements are installed
 print_status "Checking dependencies..."
-if ! python3 -c "import selenium, beautifulsoup4, pandas, numpy" 2>/dev/null; then
+if ! python3 -c "import selenium, bs4, pandas, numpy, scipy" 2>/dev/null; then
     print_warning "Some dependencies may be missing. Installing requirements..."
     if [[ -f "requirements.txt" ]]; then
         pip3 install -r requirements.txt

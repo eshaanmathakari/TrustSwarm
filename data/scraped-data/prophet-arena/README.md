@@ -1,70 +1,64 @@
 # Prophet Arena Data Extraction System
 
-This system provides a complete data extraction and analysis pipeline for Prophet Arena prediction data, designed to build trust metrics and model performance analysis.
+A comprehensive data extraction and analysis pipeline for Prophet Arena prediction data, designed to build trust metrics for AI models based on real-world prediction performance.
 
-## Overview
+## 🎯 Overview
 
-The Prophet Arena Data Extraction System scrapes historical prediction data from [Prophet Arena](https://www.prophetarena.co/markets) and processes it to calculate trust scores for AI models. This data is perfect for training trust metrics and building model performance leaderboards.
+This system scrapes historical prediction data from [Prophet Arena](https://www.prophetarena.co/markets) and processes it to calculate trust scores for AI models. The data includes:
 
-## Features
+- **Historical Events**: Sports, Economics, and Crypto predictions
+- **Model Predictions**: AI model predictions with confidence percentages
+- **Actual Outcomes**: Real-world results for trust metric training
+- **Trust Scores**: Comprehensive scoring based on accuracy, calibration, confidence, and recency
 
-- **Automated Web Scraping**: Scrapes historical events with model predictions
-- **Multi-Category Support**: Handles Sports, Economics, and Crypto predictions
-- **Trust Metrics Calculation**: Comprehensive trust scoring system
-- **Database Storage**: SQLite database with optimized schema
-- **Report Generation**: CSV and JSON reports for analysis
-- **Configurable Pipeline**: Flexible configuration for different use cases
+## 🚀 Quick Start
 
-## Installation
-
-1. Install Python dependencies:
+### 1. Setup
 ```bash
-pip install -r requirements.txt
+# Navigate to the directory
+cd data/scraped-data/prophet-arena
+
+# Run setup script
+./setup.sh
 ```
 
-2. Install Chrome WebDriver (for Selenium):
+### 2. Test the System
 ```bash
-# On macOS with Homebrew
-brew install chromedriver
+# Check pipeline status
+./run_pipeline.sh -a status
 
-# Or download from https://chromedriver.chromium.org/
+# Test with small dataset
+./run_pipeline.sh -a scrape -l 5
 ```
 
-## Quick Start
-
-### 1. Run Full Pipeline
+### 3. Run Full Pipeline
 ```bash
-python data_pipeline.py --action full --limit 10
+# Scrape all categories with default settings
+./run_pipeline.sh
+
+# Or customize the scraping
+./run_pipeline.sh -a scrape -c "sports economics" -l 25
 ```
 
-### 2. Check Pipeline Status
-```bash
-python data_pipeline.py --action status
-```
+## 📊 Data Output
 
-### 3. Scrape Data Only
-```bash
-python data_pipeline.py --action scrape --categories sports economics --limit 20
-```
+All data is stored in the `output/` directory:
 
-### 4. Calculate Trust Metrics
-```bash
-python data_pipeline.py --action metrics
-```
+- **CSV Files**: `prophet_arena_data_YYYYMMDD_HHMMSS.csv`
+- **Trust Leaderboards**: `trust_leaderboard_YYYYMMDD_HHMMSS.csv`
+- **Database**: `prophet_arena.db` (SQLite)
+- **Reports**: JSON analysis files
 
-## Configuration
+## 🔧 Configuration
 
-Edit `config.json` to customize the pipeline:
+Edit `config.json` to customize:
 
 ```json
 {
-  "database_path": "prophet_arena.db",
-  "output_dir": "output",
   "scraping": {
-    "headless": true,
-    "delay_range": [2, 5],
     "categories": ["sports", "economics", "crypto"],
-    "limit_per_category": 50
+    "limit_per_category": 50,
+    "headless": true
   },
   "trust_metrics": {
     "weights": {
@@ -77,158 +71,122 @@ Edit `config.json` to customize the pipeline:
 }
 ```
 
-## Data Structure
+## 📋 Available Commands
 
-### Events Table
-- `event_id`: Unique identifier
-- `event_title`: Event description
-- `category`: sports/economics/crypto
-- `resolved_outcome`: Actual result
-- `options`: Available choices (JSON)
+```bash
+# Pipeline Actions
+./run_pipeline.sh -a scrape     # Scrape data only
+./run_pipeline.sh -a metrics    # Calculate trust metrics
+./run_pipeline.sh -a reports    # Generate reports
+./run_pipeline.sh -a full       # Run complete pipeline
+./run_pipeline.sh -a status     # Check system status
 
-### Predictions Table
-- `model_name`: AI model identifier
-- `predicted_option`: Model's prediction
-- `probability`: Confidence percentage
-- `is_correct`: Whether prediction was right
-- `confidence_score`: Normalized confidence
+# Options
+-c "sports economics"           # Specify categories
+-l 25                          # Limit per category
+-v                             # Visible browser (for debugging)
+```
 
-### Trust Scores Table
-- `trust_score`: Composite trust metric
-- `accuracy`: Prediction accuracy
-- `calibration_score`: Probability calibration
-- `confidence_score`: Average confidence
+## 🗄️ Database Schema
 
-## Trust Metrics
+The system creates a SQLite database with:
 
-The system calculates comprehensive trust scores based on:
+- **events**: Event metadata and outcomes
+- **predictions**: Individual model predictions
+- **model_performance**: Aggregated performance metrics
+- **trust_scores**: Calculated trust scores
 
-1. **Accuracy** (40%): How often the model is correct
-2. **Calibration** (30%): How well probabilities match outcomes
-3. **Confidence** (20%): Average confidence in predictions
-4. **Recency** (10%): Recent performance weighting
+## 🧮 Trust Metrics
 
-### Calibration Metrics
-- **Brier Score**: Lower is better (0 = perfect calibration)
-- **Log Loss**: Lower is better (0 = perfect calibration)
-- **Reliability Diagram**: Visual calibration assessment
+Trust scores are calculated using:
 
-## Usage Examples
+- **Accuracy (40%)**: Prediction correctness
+- **Calibration (30%)**: Probability accuracy (Brier Score, Log Loss)
+- **Confidence (20%)**: Average prediction confidence
+- **Recency (10%)**: Recent performance weighting
 
-### Basic Scraping
+## 🔗 TrustSwarm Integration
+
 ```python
-from prophet_arena_scraper import ProphetArenaScraper
+# Integrate with TrustSwarm
+python3 integrate_with_trustswarm.py --action full
 
-scraper = ProphetArenaScraper(headless=True)
-events = scraper.scrape_all_historical_events(
-    categories=['sports', 'economics'],
-    limit_per_category=25
-)
-scraper.save_to_database(events)
-scraper.close()
+# Get agent recommendations
+python3 integrate_with_trustswarm.py --action recommend
 ```
 
-### Trust Metrics Calculation
-```python
-from trust_metrics import TrustMetricsCalculator
+## 📁 File Structure
 
-calculator = TrustMetricsCalculator()
-trust_metrics = calculator.calculate_all_trust_scores()
-calculator.save_trust_scores(trust_metrics)
-
-# Get leaderboard
-leaderboard = calculator.get_trust_leaderboard()
-print(leaderboard)
+```
+prophet-arena/
+├── prophet_arena_scraper.py      # Main scraper
+├── trust_metrics.py              # Trust calculation
+├── data_pipeline.py              # Pipeline orchestrator
+├── integrate_with_trustswarm.py  # TrustSwarm integration
+├── database_schema.sql           # Database schema
+├── run_pipeline.sh               # Main runner script
+├── setup.sh                      # Setup script
+├── config.json                   # Configuration
+├── requirements.txt              # Dependencies
+├── output/                       # Output directory
+└── README.md                     # This file
 ```
 
-### Model Analysis
-```python
-# Get detailed analysis for a specific model
-analysis = calculator.get_model_performance_analysis("GPT-5")
-print(f"Accuracy: {analysis['basic_metrics']['accuracy']}")
-print(f"Total Predictions: {analysis['basic_metrics']['total_predictions']}")
-```
+## 🚨 Important Notes
 
-## Output Files
-
-The pipeline generates several output files:
-
-- `prophet_arena_data_YYYYMMDD_HHMMSS.csv`: Raw prediction data
-- `trust_leaderboard_YYYYMMDD_HHMMSS.csv`: Overall trust rankings
-- `trust_leaderboard_{category}_YYYYMMDD_HHMMSS.csv`: Category-specific rankings
-- `model_analysis_{model}_YYYYMMDD_HHMMSS.json`: Detailed model analysis
-- `prophet_arena.db`: SQLite database with all data
-
-## Database Queries
-
-### Get Top Models by Trust Score
-```sql
-SELECT model_name, trust_score, accuracy, total_predictions
-FROM trust_leaderboard
-ORDER BY trust_score DESC
-LIMIT 10;
-```
-
-### Model Performance by Category
-```sql
-SELECT model_name, category, accuracy, total_predictions
-FROM model_accuracy_by_category
-WHERE category = 'sports'
-ORDER BY accuracy DESC;
-```
-
-### Recent Performance Analysis
-```sql
-SELECT model_name, recent_accuracy, recent_predictions
-FROM recent_model_performance
-WHERE recent_predictions >= 10
-ORDER BY recent_accuracy DESC;
-```
-
-## Legal and Ethical Considerations
-
-- **Terms of Service**: Always comply with Prophet Arena's terms of service
 - **Rate Limiting**: Built-in delays prevent server overload
-- **Respectful Scraping**: Implements best practices for web scraping
-- **Data Usage**: Use data responsibly and ethically
+- **Headless Mode**: Default browser mode (use `-v` for debugging)
+- **Data Storage**: All data saved to `output/` directory
+- **Legal Compliance**: Respects Prophet Arena's terms of service
 
-## Troubleshooting
+## 🛠️ Troubleshooting
 
 ### Common Issues
 
-1. **ChromeDriver Not Found**
-   - Install ChromeDriver and ensure it's in PATH
-   - Or use `webdriver-manager` for automatic management
+1. **Dependencies Missing**
+   ```bash
+   ./setup.sh  # Reinstall dependencies
+   ```
 
-2. **No Events Scraped**
-   - Check if Prophet Arena website structure changed
-   - Verify network connectivity
-   - Try running with `--headless false` to see browser
+2. **Browser Issues**
+   ```bash
+   ./run_pipeline.sh -v  # Run with visible browser
+   ```
 
-3. **Database Errors**
-   - Ensure write permissions in directory
-   - Check if database file is locked by another process
+3. **Permission Errors**
+   ```bash
+   chmod +x *.sh  # Make scripts executable
+   ```
 
-### Debug Mode
+## 📈 Example Usage
+
+### Scrape Sports Data
 ```bash
-python data_pipeline.py --action scrape --headless false
+./run_pipeline.sh -a scrape -c "sports" -l 20
 ```
 
-## Contributing
+### Calculate Trust Metrics
+```bash
+./run_pipeline.sh -a metrics
+```
+
+### View Results
+```bash
+# Check database
+sqlite3 prophet_arena.db "SELECT * FROM trust_leaderboard LIMIT 10;"
+
+# View CSV files
+ls -la output/
+```
+
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests if applicable
+4. Test thoroughly
 5. Submit a pull request
 
-## License
+## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For issues and questions:
-1. Check the troubleshooting section
-2. Review the logs in `data_pipeline.log`
-3. Open an issue with detailed error information
+This project is part of the TrustSwarm system and follows the same licensing terms.

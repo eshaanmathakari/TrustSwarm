@@ -1,0 +1,46 @@
+# Prophet Arena Data Extraction - Git Ignore
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Log files
+*.log
+logs/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Virtual environments
+venv/
+env/
+.env
+
+# Output data files
+output/*.csv
+output/*.json
+output/*.xlsx
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Chrome driver files
+chromedriver*
+
+# Keep directory structure but ignore contents
+output/.gitkeep
+logs/.gitkeep
