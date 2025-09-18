@@ -14,6 +14,7 @@ CREATE TABLE agents (
     trust_score DECIMAL(5,4) DEFAULT 0.5000,
     specialization_domains TEXT[], -- Array of domains
     voice_signature_hash VARCHAR(255), -- For voice verification
+    voice_id VARCHAR(255), -- ElevenLabs voice ID
     status VARCHAR(20) DEFAULT 'active',
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
@@ -175,3 +176,23 @@ FROM agents a
 JOIN predictions p ON a.id = p.agent_id
 WHERE p.prediction_timestamp >= NOW() - INTERVAL '30 days'
 ORDER BY p.prediction_timestamp DESC;
+
+-- voice_conversations table: Store voice conversation history
+CREATE TABLE voice_conversations (
+    id VARCHAR(255) PRIMARY KEY,
+    agent_id UUID REFERENCES agents(id) ON DELETE CASCADE,
+    event_id VARCHAR(255) NOT NULL,
+    started_at TIMESTAMP NOT NULL,
+    ended_at TIMESTAMP,
+    message_count INTEGER DEFAULT 0,
+    conversation_data JSONB, -- Store full conversation messages
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Create indexes for voice_conversations
+CREATE INDEX idx_voice_conversations_agent_id ON voice_conversations(agent_id);
+CREATE INDEX idx_voice_conversations_event_id ON voice_conversations(event_id);
+CREATE INDEX idx_voice_conversations_started_at ON voice_conversations(started_at DESC);
+
+-- Add voice_id index to agents table
+CREATE INDEX idx_agents_voice_id ON agents(voice_id);

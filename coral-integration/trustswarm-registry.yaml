@@ -1,0 +1,152 @@
+# TrustSwarm Agent Registry Configuration for Coral Protocol
+# This file defines the available TrustSwarm agents that can be orchestrated by Coral Server
+
+# TrustSwarm Trust Analysis Agent
+trustswarm-trust-analyzer:
+  options:
+    - name: "OPENAI_API_KEY"
+      type: "string"
+      description: "OpenAI API Key for trust analysis and scoring"
+    - name: "TRUST_MODEL"
+      type: "string"
+      description: "Trust analysis model to use (default: gpt-4)"
+      default: "gpt-4"
+    - name: "ANALYSIS_DEPTH"
+      type: "string"
+      description: "Depth of trust analysis (shallow, medium, deep)"
+      default: "medium"
+    - name: "SCORING_THRESHOLD"
+      type: "number"
+      description: "Minimum trust score threshold (0.0-1.0)"
+      default: 0.7
+
+  runtime:
+    type: "executable"
+    command: ["node", "coral-integration/agents/trust-analyzer.js"]
+    environment:
+      - name: "API_KEY"
+        from: "OPENAI_API_KEY"
+      - option: "TRUST_MODEL"
+      - option: "ANALYSIS_DEPTH"
+      - option: "SCORING_THRESHOLD"
+
+# TrustSwarm Communication Agent
+trustswarm-communicator:
+  options:
+    - name: "OPENAI_API_KEY"
+      type: "string"
+      description: "OpenAI API Key for communication processing"
+    - name: "COMMUNICATION_MODEL"
+      type: "string"
+      description: "Communication model to use (default: gpt-4)"
+      default: "gpt-4"
+    - name: "MAX_MESSAGE_LENGTH"
+      type: "number"
+      description: "Maximum message length in characters"
+      default: 2000
+    - name: "RESPONSE_STYLE"
+      type: "string"
+      description: "Communication style (formal, casual, technical)"
+      default: "professional"
+
+  runtime:
+    type: "executable"
+    command: ["node", "coral-integration/agents/communicator.js"]
+    environment:
+      - name: "API_KEY"
+        from: "OPENAI_API_KEY"
+      - option: "COMMUNICATION_MODEL"
+      - option: "MAX_MESSAGE_LENGTH"
+      - option: "RESPONSE_STYLE"
+
+# TrustSwarm Prediction Agent
+trustswarm-predictor:
+  options:
+    - name: "OPENAI_API_KEY"
+      type: "string"
+      description: "OpenAI API Key for prediction analysis"
+    - name: "PREDICTION_MODEL"
+      type: "string"
+      description: "Prediction model to use (default: gpt-4)"
+      default: "gpt-4"
+    - name: "PREDICTION_HORIZON"
+      type: "number"
+      description: "Prediction time horizon in days"
+      default: 30
+    - name: "CONFIDENCE_THRESHOLD"
+      type: "number"
+      description: "Minimum confidence threshold for predictions (0.0-1.0)"
+      default: 0.8
+
+  runtime:
+    type: "executable"
+    command: ["node", "coral-integration/agents/predictor.js"]
+    environment:
+      - name: "API_KEY"
+        from: "OPENAI_API_KEY"
+      - option: "PREDICTION_MODEL"
+      - option: "PREDICTION_HORIZON"
+      - option: "CONFIDENCE_THRESHOLD"
+
+# TrustSwarm Voice Agent
+trustswarm-voice:
+  options:
+    - name: "OPENAI_API_KEY"
+      type: "string"
+      description: "OpenAI API Key for voice processing"
+    - name: "ELEVENLABS_API_KEY"
+      type: "string"
+      description: "ElevenLabs API Key for voice synthesis"
+    - name: "VOICE_MODEL"
+      type: "string"
+      description: "Voice model to use (default: gpt-4)"
+      default: "gpt-4"
+    - name: "VOICE_ID"
+      type: "string"
+      description: "ElevenLabs voice ID for synthesis"
+      default: "21m00Tcm4TlvDq8ikWAM"
+    - name: "AUDIO_QUALITY"
+      type: "string"
+      description: "Audio quality (standard, hd)"
+      default: "standard"
+
+  runtime:
+    type: "executable"
+    command: ["node", "coral-integration/agents/voice-agent.js"]
+    environment:
+      - name: "API_KEY"
+        from: "OPENAI_API_KEY"
+      - name: "ELEVENLABS_API_KEY"
+        from: "ELEVENLABS_API_KEY"
+      - option: "VOICE_MODEL"
+      - option: "VOICE_ID"
+      - option: "AUDIO_QUALITY"
+
+# TrustSwarm Coordinator Agent
+trustswarm-coordinator:
+  options:
+    - name: "OPENAI_API_KEY"
+      type: "string"
+      description: "OpenAI API Key for coordination logic"
+    - name: "COORDINATION_MODEL"
+      type: "string"
+      description: "Coordination model to use (default: gpt-4)"
+      default: "gpt-4"
+    - name: "MAX_CONCURRENT_TASKS"
+      type: "number"
+      description: "Maximum number of concurrent tasks to manage"
+      default: 5
+    - name: "TASK_TIMEOUT"
+      type: "number"
+      description: "Task timeout in seconds"
+      default: 300
+
+  runtime:
+    type: "executable"
+    command: ["node", "coral-integration/agents/coordinator.js"]
+    environment:
+      - name: "API_KEY"
+        from: "OPENAI_API_KEY"
+      - option: "COORDINATION_MODEL"
+      - option: "MAX_CONCURRENT_TASKS"
+      - option: "TASK_TIMEOUT"
