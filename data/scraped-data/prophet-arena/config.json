@@ -1,0 +1,27 @@
+{
+  "database_path": "prophet_arena.db",
+  "output_dir": "output",
+  "scraping": {
+    "headless": true,
+    "delay_range": [2, 5],
+    "categories": ["sports", "economics", "crypto"],
+    "limit_per_category": 50,
+    "max_retries": 3
+  },
+  "trust_metrics": {
+    "weights": {
+      "accuracy": 0.4,
+      "calibration": 0.3,
+      "confidence": 0.2,
+      "recency": 0.1
+    },
+    "recent_days": 30,
+    "calibration_bins": 10
+  },
+  "output": {
+    "save_csv": true,
+    "save_json": true,
+    "save_database": true,
+    "generate_reports": true
+  }
+}
