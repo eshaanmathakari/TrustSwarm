@@ -1,0 +1,40 @@
+[agent]
+name = "predict1"
+version = "1.0.0"
+
+[options.MODEL_API_KEY]
+type = "string"
+description = "API key for the model provider"
+
+[options.MODEL_NAME]
+type = "string"
+description = "What model to use (e.g 'gpt-4.1')"
+default = "llama-3.3-70b-versatile"
+
+[options.MODEL_PROVIDER]
+type = "string"
+description = "What model provider to use (e.g 'openai', etc)"
+default = "groq"
+
+[options.MODEL_BASE_URL]
+type = "string"
+description = "What model provider to use (e.g 'openai', etc)"
+default = "https://api.groq.com"
+
+[options.MODEL_MAX_TOKENS]
+type = "string"
+description = "Max tokens to use"
+default = "16000"
+
+[options.MODEL_TEMPERATURE]
+type = "string"
+description = "What model temperature to use"
+default = "0.3"
+
+[options.TIMEOUT_MS]
+type = "string"
+description = "Connection/tool timeouts in ms"
+default = "300"
+
+[runtimes.executable]
+command = ["bash", "-c", "./run_agent.sh main.py"]
