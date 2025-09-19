@@ -19,7 +19,7 @@ module.exports = {
           pink: '#ff0080',
           yellow: '#ffff00',
           orange: '#ff8000',
-          dark: '#0a0a0a',
+          dark: '#242424',
           darker: '#050505',
         },
         neon: {

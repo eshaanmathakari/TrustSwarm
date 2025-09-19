@@ -257,3 +257,16 @@ a {
     transform: skew(0.6deg);
   }
 } 
+
+.lmv {
+  animation: move-line linear forwards;
+}
+
+@keyframes move-line {
+  0% {
+    transform: translateX(200vw);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}

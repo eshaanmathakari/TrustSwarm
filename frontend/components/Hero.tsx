@@ -2,49 +2,40 @@
 
 import { motion } from 'framer-motion';
 import { ArrowRight, TrendingUp, Palette, Target, Shield } from 'lucide-react';
+import AnimatedLines from './animated-back';
+import Image from "next/image";
 
 export default function Hero() {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-cyber-dark via-cyber-darker to-black opacity-90" />
-      
-      {/* Animated background grid */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="grid grid-cols-12 gap-4 h-full">
-          {Array.from({ length: 144 }).map((_, i) => (
-            <motion.div
-              key={i}
-              className="border border-cyber-green/20"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 0.5, 0] }}
-              transition={{
-                duration: 3,
-                delay: i * 0.02,
-                repeat: Infinity,
-                repeatType: 'loop',
-              }}
-            />
-          ))}
-        </div>
-      </div>
+      <div className="absolute inset-0 bg-gradient-to-br from-cyber-dark via-cyber-darker opacity-90" />
+      <AnimatedLines />
+
 
       {/* Main content */}
       <div className="relative z-10 text-center px-4 max-w-6xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          <h1 className="text-6xl md:text-8xl font-bold mb-6 font-mono tracking-tight">
-            <span 
-              className="glitch text-cyber-green animate-glow-pulse"
-              data-text="TRUST SWARM"
-            >
-              TRUST SWARM
-            </span>
-          </h1>
-        </motion.div>
+      <motion.div
+  initial={{ opacity: 0, y: 30 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.8 }}
+>
+  <h1 className="flex items-center justify-center gap-4 text-6xl md:text-8xl font-bold mb-6 font-mono ">
+    <Image
+      src="/hive_black.svg"
+      alt="Trust Swarm Logo"
+      width={80}
+      height={80}
+      className="w-30 h-30 inline-block"
+    />
+    <span
+      className="glitch text-cyber-green "
+      data-text="TRUST SWARM"
+    >
+      TRUST SWARM
+    </span>
+  </h1>
+</motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
