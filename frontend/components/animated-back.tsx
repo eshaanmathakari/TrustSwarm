@@ -16,7 +16,7 @@ export default function AnimatedLines() {
 
       const y = Math.random() * window.innerHeight
       const width = 100 + Math.random() * 400
-      const duration = 3 + Math.random() * 3
+      const duration = 1.5
 
       line.style.top = `${y}px`
       line.style.width = `${width}px`
@@ -27,7 +27,7 @@ export default function AnimatedLines() {
       setTimeout(() => line.remove(), duration * 1000)
     }
 
-    const interval = setInterval(createLine, 150)
+    const interval = setInterval(createLine, 100)
 
     return () => {
       clearInterval(interval)
