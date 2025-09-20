@@ -86,8 +86,8 @@ const data = {
     status: "online",
   },
   user: {
-    name: "KRIMSON",
-    email: "krimson@joyco.studio",
+    name: "GUEST",
+    email: "guest@trustswarm.com",
     avatar: "/avatars/user_krimson.png",
   },
 };
