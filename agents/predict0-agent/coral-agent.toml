@@ -2,6 +2,11 @@
 name = "predict0"
 version = "1.0.0"
 
+[options.USER_REQUEST]
+type = "string"
+required = true
+description = "The user request to fulfill"
+
 [options.MODEL_API_KEY]
 type = "string"
 description = "API key for the model provider"
@@ -9,17 +14,7 @@ description = "API key for the model provider"
 [options.MODEL_NAME]
 type = "string"
 description = "What model to use (e.g 'gpt-4.1')"
-default = "mistral-medium-2508"
-
-[options.MODEL_PROVIDER]
-type = "string"
-description = "What model provider to use (e.g 'openai', etc)"
-default = "mistral"
-
-[options.MODEL_BASE_URL]
-type = "string"
-description = "What model provider to use (e.g 'openai', etc)"
-default = "https://api.groq.com"
+default = "mistral-large-latest"
 
 [options.MODEL_MAX_TOKENS]
 type = "string"

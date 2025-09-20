@@ -6,3 +6,6 @@ path = "agents/predict1-agent"
 
 [[local-agent]]
 path = "agents/predict2-agent"
+
+[[local-agent]]
+path = "agents/interface"

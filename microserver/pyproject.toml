@@ -1,0 +1,10 @@
+[project]
+name = "prediction-microservice"
+version = "0.1.0"
+requires-python = ">=3.9"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "httpx",
+    "python-dotenv",
+]
