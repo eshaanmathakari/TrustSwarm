@@ -4,15 +4,14 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import TVNoise from "@/components/ui/tv-noise";
-import type { WidgetData } from "@/types/dashboard";
+import { useLocation } from "@/hooks/use-location";
+import { formatLocationTime, formatLocationDate } from "@/lib/location-service";
 import Image from "next/image";
 
-interface WidgetProps {
-  widgetData: WidgetData;
-}
-
-export default function Widget({ widgetData }: WidgetProps) {
+export default function Widget() {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const { location, loading, error } = useLocation();
+  const locationData = location?.locationData;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -23,6 +22,9 @@ export default function Widget({ widgetData }: WidgetProps) {
   }, []);
 
   const formatTime = (date: Date) => {
+    if (locationData?.timezone) {
+      return formatLocationTime(date.getTime(), locationData.timezone);
+    }
     return date.toLocaleTimeString("en-US", {
       hour12: true,
       hour: "numeric",
@@ -31,6 +33,15 @@ export default function Widget({ widgetData }: WidgetProps) {
   };
 
   const formatDate = (date: Date) => {
+    if (locationData?.timezone) {
+      const formattedDate = formatLocationDate(date.getTime(), locationData.timezone);
+      const [dayOfWeek, month, day, year] = formattedDate.split(', ');
+      return {
+        dayOfWeek: dayOfWeek || date.toLocaleDateString("en-US", { weekday: "long" }),
+        restOfDate: `${month} ${day}, ${year}` || date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+      };
+    }
+
     const dayOfWeek = date.toLocaleDateString("en-US", {
       weekday: "long",
     });
@@ -43,6 +54,19 @@ export default function Widget({ widgetData }: WidgetProps) {
   };
 
   const dateInfo = formatDate(currentTime);
+
+  // Get real location info
+  const displayLocation = location?.city && location?.country
+    ? `${location.city.toUpperCase()}, ${location.country.toUpperCase()}`
+    : 'LOCATION UNAVAILABLE';
+
+  const displayTemperature = locationData?.weather?.temperature
+    ? `${locationData.weather.temperature}°C`
+    : '--°C';
+
+  const displayTimezone = locationData?.timezone
+    ? locationData.timezone.split('/')[1] || 'UTC'
+    : 'UTC';
 
   return (
     <Card className="w-full aspect-[2] relative overflow-hidden">
@@ -59,11 +83,18 @@ export default function Widget({ widgetData }: WidgetProps) {
         </div>
 
         <div className="flex justify-between items-center">
-          <span className="opacity-50">{widgetData.temperature}</span>
-          <span>{widgetData.location}</span>
+          <span className="opacity-50">{displayTemperature}</span>
+          <div className="flex flex-col items-center">
+            <span>{displayLocation}</span>
+            {location?.city && location?.country && (
+              <span className="text-xs opacity-70 mt-1">
+                {location.city.toUpperCase()}
+              </span>
+            )}
+          </div>
 
           <Badge variant="secondary" className="bg-accent">
-            {widgetData.timezone}
+            {displayTimezone}
           </Badge>
         </div>
 

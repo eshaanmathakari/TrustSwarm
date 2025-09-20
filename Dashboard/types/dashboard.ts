@@ -49,21 +49,12 @@ export interface Notification {
   priority: "low" | "medium" | "high";
 }
 
-export interface WidgetData {
-  location: string;
-  timezone: string;
-  temperature: string;
-  weather: string;
-  date: string;
-}
-
 export interface MockData {
   dashboardStats: DashboardStat[];
   chartData: ChartData;
   rebelsRanking: RebelRanking[];
   securityStatus: SecurityStatus[];
   notifications: Notification[];
-  widgetData: WidgetData;
 }
 
 export type TimePeriod = "week" | "month" | "year";
