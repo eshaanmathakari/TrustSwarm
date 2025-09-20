@@ -162,127 +162,82 @@ async def main():
     if runtime is None:
         load_dotenv()
 
+    while 1:
+        user_request_json = os.getenv("USER_REQUEST")
+        if not user_request_json:
+            continue
+        else:
+            break
+
+    print(f"Received user request: {user_request_json}")
+
+    # Step 2: Connect to the Coral Server to get access to the tools.
     base_url = os.getenv("CORAL_SSE_URL")
     agentID = os.getenv("CORAL_AGENT_ID")
-
-    coral_params = {
-        "agentId": agentID,
-        "agentDescription": "Simple agent for betting predictions with probabilities and rationale"
-    }
-
+    coral_params = {"agentId": agentID}
     query_string = urllib.parse.urlencode(coral_params)
     CORAL_SERVER_URL = f"{base_url}?{query_string}"
-    print(f"Connecting to Coral Server: {CORAL_SERVER_URL}")
 
-    timeout = float(os.getenv("TIMEOUT_MS", "30000"))
     client = MultiServerMCPClient(
-        connections={
-            "coral": {
-                "transport": "sse",
-                "url": CORAL_SERVER_URL,
-                "timeout": timeout,
-                "sse_read_timeout": timeout,
-            }
-        }
+        connections={"coral": {"transport": "sse", "url": CORAL_SERVER_URL}}
     )
-
     print("Coral Connection Established")
-    coral_tools = await client.get_tools(server_name="coral")
-    print(f"Got {len(coral_tools)} coral tools")
+    send_result_tool = None # Define here for use in the finally block
 
-    # Initialize the LLM for predictions only
-    # model = init_chat_model(
-    #     model=os.getenv("MODEL_NAME"),
-    #     model_provider=os.getenv("MODEL_PROVIDER"),
-    #     api_key=os.getenv("MODEL_API_KEY"),
-    #     temperature=float(os.getenv("MODEL_TEMPERATURE", "0.1")),
-    #     max_tokens=int(os.getenv("MODEL_MAX_TOKENS", "8000")),
-    #     base_url=os.getenv("MODEL_BASE_URL", None)
-    # )
+    try:
+        # Step 3: Find the custom tool for sending the result back.
+        coral_tools = await client.get_tools(server_name="coral")
+        for tool in coral_tools:
+            # The tool name 'send_prediction_result' comes from the microservice.
+            if tool.name == "send_prediction_result":
+                send_result_tool = tool
+                break
+        
+        if not send_result_tool:
+            print("FATAL: Could not find the 'send_prediction_result' tool. Cannot send response.")
+            return
 
-    model = ChatMistralAI(
+        # Step 4: Parse, validate, and perform the prediction.
+        request_data = parse_message_content(user_request_json)
+        is_valid, error_msg = validate_request(request_data)
+
+        if not is_valid:
+            error_response = json.dumps({"error": f"Invalid request: {error_msg}"})
+            print(f"Sending error response: {error_response}")
+            await send_result_tool.ainvoke({"result": error_response})
+            return
+
+        model = ChatMistralAI(
             model=os.getenv("MODEL_NAME"),
             mistral_api_key=os.getenv("MODEL_API_KEY"),
             temperature=float(os.getenv("MODEL_TEMPERATURE", "0.1")),
             max_tokens=int(os.getenv("MODEL_MAX_TOKENS", "8000")),
-    )
+        )
 
-    # Get tools by name for easy access
-    wait_for_mentions = None
-    send_message = None
-    
-    for tool in coral_tools:
-        if tool.name == "coral_wait_for_mentions":
-            wait_for_mentions = tool
-        elif tool.name == "coral_send_message":
-            send_message = tool
-    
-    if not wait_for_mentions or not send_message:
-        raise ValueError("Missing required coral tools: wait_for_mentions or send_message")
+        print("Making prediction...")
+        prediction_result = await make_prediction(
+            model,
+            title=request_data['title'],
+            markets=request_data['markets'],
+            sources=request_data.get('sources', []),
+            market_stats=request_data.get('market_stats', None)
+        )
 
-    print("Starting main loop...")
+        # Step 5: Use the custom tool to send the result back to the microservice.
+        print(f"Sending prediction result: {prediction_result}")
+        await send_result_tool.ainvoke({"result": prediction_result})
+        print("Successfully processed request. Agent's job is done.")
 
-    while True:
-        try:
-            print("Waiting for mentions...")
-            # Wait for mentions in pure Python, no LLM needed
-            result = await wait_for_mentions.ainvoke({"timeoutMs": 30000})
-            
-            if not result:
-                print("No mentions received, continuing...")
-                await asyncio.sleep(2)
-                continue
-            
-            # Parse the result
-            thread_id = result.get("threadId")
-            sender_id = result.get("senderId") 
-            content = result.get("content", "")
-            
-            if not thread_id or not sender_id:
-                print("Invalid mention result, continuing...")
-                continue
-                
-            print(f"Received mention from {sender_id} in thread {thread_id}")
-            print(f"Content: {content}")
-            
-            # Parse and validate request
-            request_data = parse_message_content(content)
-            is_valid, error_msg = validate_request(request_data)
-            
-            if not is_valid:
-                print(f"Invalid request: {error_msg}")
-                await send_message.ainvoke({
-                    "threadId": thread_id,
-                    "content": json.dumps({"error": error_msg}),
-                    "mentions": [sender_id]
-                })
-                continue
-            
-            # Make prediction using LLM
-            print("Making prediction...")
-            prediction_result = await make_prediction(
-                model,
-                title=request_data['title'],
-                markets=request_data['markets'],
-                sources=request_data.get('sources', []),
-                market_stats=request_data.get('market_stats', None)
-            )
-            
-            # Send response back
-            print(f"Sending prediction result: {prediction_result}")
-            await send_message.ainvoke({
-                "threadId": thread_id,
-                "content": prediction_result,
-                "mentions": [sender_id]
-            })
-            
-            print("Successfully processed request")
-            await asyncio.sleep(2)
-            
-        except Exception as e:
-            print(f"Error in main loop: {str(e)}")
-            print(traceback.format_exc())
-            await asyncio.sleep(5)
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        print(traceback.format_exc())
+        # Try to send an error back to the user if the tool was found
+        if send_result_tool:
+            await send_result_tool.ainvoke({"result": json.dumps({"error": str(e)})})
+    finally:
+        # Cleanly close the connection to the server
+        # await client.close()
+        print("Job Finished Succssfully")
 
 
 if __name__ == "__main__":
