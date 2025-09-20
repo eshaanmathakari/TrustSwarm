@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 import os, json, asyncio, traceback
 from langchain.chat_models import init_chat_model
 from langchain_mcp_adapters.client import MultiServerMCPClient
+from langchain_mistralai import ChatMistralAI
 
 
 def create_task_prompt(event_title: str, market_names: list) -> str:
@@ -190,13 +191,20 @@ async def main():
     print(f"Got {len(coral_tools)} coral tools")
 
     # Initialize the LLM for predictions only
-    model = init_chat_model(
-        model=os.getenv("MODEL_NAME"),
-        model_provider=os.getenv("MODEL_PROVIDER"),
-        api_key=os.getenv("MODEL_API_KEY"),
-        temperature=float(os.getenv("MODEL_TEMPERATURE", "0.1")),
-        max_tokens=int(os.getenv("MODEL_MAX_TOKENS", "8000")),
-        base_url=os.getenv("MODEL_BASE_URL", None)
+    # model = init_chat_model(
+    #     model=os.getenv("MODEL_NAME"),
+    #     model_provider=os.getenv("MODEL_PROVIDER"),
+    #     api_key=os.getenv("MODEL_API_KEY"),
+    #     temperature=float(os.getenv("MODEL_TEMPERATURE", "0.1")),
+    #     max_tokens=int(os.getenv("MODEL_MAX_TOKENS", "8000")),
+    #     base_url=os.getenv("MODEL_BASE_URL", None)
+    # )
+
+    model = ChatMistralAI(
+            model=os.getenv("MODEL_NAME"),
+            mistral_api_key=os.getenv("MODEL_API_KEY"),
+            temperature=float(os.getenv("MODEL_TEMPERATURE", "0.1")),
+            max_tokens=int(os.getenv("MODEL_MAX_TOKENS", "8000")),
     )
 
     # Get tools by name for easy access
