@@ -24,49 +24,34 @@ export default function About() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              <h4 className="text-lg font-semibold text-white mb-3">Backend & Automation</h4>
+              <h4 className="text-lg font-semibold text-white mb-3">AI & Machine Learning</h4>
               <ul className="space-y-2 text-gray-300">
-                <li>• n8n workflow automation</li>
-                <li>• Cursor AI for code generation</li>
-                <li>• IPFS for asset storage</li>
-                <li>• Base blockchain for trading</li>
+                <li>• Mastra for AI orchestration</li>
+                <li>• Langchain for LLM workflows</li>
+                <li>• Groq for high-performance inference</li>
+                <li>• Mistral AI for advanced language models</li>
+                <li>• Gemini for multimodal AI capabilities</li>
+                <li>• ElevenLabs for text-to-speech</li>
               </ul>
             </div>
             <div>
-              <h4 className="text-lg font-semibold text-white mb-3">Frontend & APIs</h4>
+              <h4 className="text-lg font-semibold text-white mb-3">Infrastructure & APIs</h4>
               <ul className="space-y-2 text-gray-300">
                 <li>• Next.js with TypeScript</li>
-                <li>• Zora API for minting</li>
-                <li>• Farcaster for social posting</li>
-                <li>• Real-time wallet tracking</li>
+                <li>• Express.js for backend services</li>
+                <li>• Docker for containerization</li>
+                <li>• Real-time AI agent communication</li>
               </ul>
             </div>
           </div>
           <div className="mt-6 pt-6 border-t border-white/10">
-            <p className="text-sm text-gray-400 mb-3">
-              Built for the Zora Coinathon (Phase 1) and expanded during Anonymous Apes Hackathon (Phase 2)
-            </p>
             <div className="flex flex-wrap gap-4">
-              <a 
-                href="https://github.com/brooklyn-project" 
+              <a
+                href="https://github.com/brooklyn-project"
                 className="inline-flex items-center gap-2 text-cyber-green hover:text-neon-green transition-colors"
               >
                 <ExternalLink className="w-4 h-4" />
                 View on GitHub
-              </a>
-              <a 
-                href="https://farcaster.xyz/brooklynxyz" 
-                className="inline-flex items-center gap-2 text-cyber-blue hover:text-neon-cyan transition-colors"
-              >
-                <ExternalLink className="w-4 h-4" />
-                Follow on Farcaster
-              </a>
-              <a 
-                href="https://zora.co/brooklynxyz" 
-                className="inline-flex items-center gap-2 text-cyber-purple hover:text-neon-purple transition-colors"
-              >
-                <ExternalLink className="w-4 h-4" />
-                Mint on Zora
               </a>
             </div>
           </div>
