@@ -6,13 +6,8 @@ import { ExternalLink, Github, Twitter, Wallet } from 'lucide-react';
 export default function Footer() {
   const socialLinks = [
     {
-      name: 'Farcaster',
-      href: 'https://farcaster.xyz/brooklyn',
-      icon: ExternalLink,
-    },
-    {
       name: 'GitHub',
-      href: 'https://github.com/brooklyn-project',
+      href: 'https://github.com/eshaanmathakari/TrustSwarm',
       icon: Github,
     },
     {
@@ -124,7 +119,7 @@ export default function Footer() {
           <div className="flex items-center gap-4 text-sm">
             <span className="text-gray-400">Built with</span>
             <a
-              href="https://xavier.engineering"
+              href="https://trust-swarm.vercel.app/"
               target="_blank"
               rel="noopener noreferrer"
               className="text-cyber-green hover:text-neon-green transition-colors font-semibold"
