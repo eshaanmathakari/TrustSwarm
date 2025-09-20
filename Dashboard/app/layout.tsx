@@ -10,8 +10,6 @@ import mockDataJson from "@/mock.json";
 import type { MockData } from "@/types/dashboard";
 import Widget from "@/components/dashboard/widget";
 import Notifications from "@/components/dashboard/notifications";
-import { MobileChat } from "@/components/chat/mobile-chat";
-import Chat from "@/components/chat";
 
 const mockData = mockDataJson as MockData;
 
@@ -35,7 +33,7 @@ export const metadata: Metadata = {
   },
   description:
     "The ultimate OS for rebels. Making the web for brave individuals.",
-    generator: 'v0.app'
+  generator: 'v0.app'
 };
 
 export default function RootLayout({
@@ -70,17 +68,14 @@ export default function RootLayout({
               <div className="col-span-1 lg:col-span-7">{children}</div>
               <div className="col-span-3 hidden lg:block">
                 <div className="space-y-gap py-sides min-h-screen max-h-screen sticky top-0 overflow-clip">
-                  <Widget widgetData={mockData.widgetData} />
+                  <Widget />
                   <Notifications
                     initialNotifications={mockData.notifications}
                   />
-                  <Chat />
                 </div>
               </div>
             </div>
 
-            {/* Mobile Chat - floating CTA with drawer */}
-            <MobileChat />
           </SidebarProvider>
         </V0Provider>
       </body>

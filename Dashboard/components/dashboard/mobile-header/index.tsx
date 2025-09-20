@@ -21,8 +21,8 @@ export function MobileHeader({ mockData }: MobileHeaderProps) {
         {/* Left: Sidebar Menu */}
         <SidebarTrigger />
 
-        {/* Center: Monkey Logo + Time */}
-        <div className="flex items-center gap-3">
+        {/* Center: Monkey Logo */}
+        <div className="flex items-center gap-3 flex-1 justify-center">
           <div className="flex items-center gap-2">
             <div className="h-8 w-16 bg-primary rounded flex items-center justify-center">
               <MonkeyIcon className="size-6 text-primary-foreground" />
