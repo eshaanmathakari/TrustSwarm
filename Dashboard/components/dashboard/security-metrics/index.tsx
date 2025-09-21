@@ -7,22 +7,22 @@ import { DollarSign } from "lucide-react";
 
 const securityMetrics = [
     {
-        title: "GUARD BOTS",
-        value: "124/124",
-        status: "[RUNNING...]",
-        variant: "default" as const
+        "title": "AGENTS",
+        "value": "20/20",
+        "status": "[RUNNING...]",
+        "variant": "default" as const
     },
     {
-        title: "FIREWALL",
-        value: "99.9%",
-        status: "[BLOCKED]",
-        variant: "default" as const
+        "title": "UPTIME",
+        "value": "99.9%",
+        "status": "[RUNNING...]",
+        "variant": "default" as const
     },
     {
-        title: "HTML WARNINGS",
-        value: "12042",
-        status: "[ACCESSIBILITY]",
-        variant: "destructive" as const
+        "title": "INTEGRITY",
+        "value": "100%",
+        "status": "[OK]",
+        "variant": "default" as const
     }
 ];
 

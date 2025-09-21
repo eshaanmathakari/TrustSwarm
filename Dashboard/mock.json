@@ -150,25 +150,6 @@
             "avatar": "/avatars/user_joyboy.png"
         }
     ],
-    "securityStatus": [{
-            "title": "GUARD BOTS",
-            "value": "124/124",
-            "status": "[RUNNING...]",
-            "variant": "success"
-        },
-        {
-            "title": "FIREWALL",
-            "value": "99.9%",
-            "status": "[BLOCKED]",
-            "variant": "success"
-        },
-        {
-            "title": "HTML WARNINGS",
-            "value": "12042",
-            "status": "[ACCESSIBILITY]",
-            "variant": "warning"
-        }
-    ],
     "notifications": [{
             "id": "notif-1",
             "title": "PAYMENT RECEIVED",
