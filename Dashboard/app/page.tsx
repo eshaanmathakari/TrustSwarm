@@ -3,7 +3,7 @@
 import DashboardPageLayout from "@/components/dashboard/layout";
 import DashboardStat from "@/components/dashboard/stat";
 import { TrendingSection } from "@/components/dashboard/trending-section";
-import { SportsLeaderboard, FinanceLeaderboard } from "@/components/dashboard/api-leaderboard";
+import { FakeSportsLeaderboard, FakeFinanceLeaderboard } from "@/components/dashboard/fake-leaderboards";
 import BracketsIcon from "@/components/icons/brackets";
 import GearIcon from "@/components/icons/gear";
 import ProcessorIcon from "@/components/icons/proccesor";
@@ -86,8 +86,8 @@ export default function DashboardOverview() {
 
       {/* Main 2-column grid section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <SportsLeaderboard />
-        <FinanceLeaderboard />
+        <FakeSportsLeaderboard />
+        <FakeFinanceLeaderboard />
       </div>
     </DashboardPageLayout>
   );
