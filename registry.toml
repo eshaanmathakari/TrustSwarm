@@ -9,3 +9,6 @@ path = "agents/predict2-agent"
 
 [[local-agent]]
 path = "agents/interface"
+
+[[local-agent]]
+path = "agents/firecrawl"
