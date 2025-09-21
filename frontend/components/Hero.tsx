@@ -1,9 +1,10 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ArrowRight, TrendingUp, Palette, Target, Shield } from 'lucide-react';
+import { ArrowRight, TrendingUp, Palette, Target, Shield, Mic } from 'lucide-react';
 import AnimatedLines from './animated-back';
 import Image from "next/image";
+import Link from 'next/link';
 
 export default function Hero() {
   return (
@@ -73,6 +74,12 @@ export default function Hero() {
             Build & Monetize
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </button>
+
+          <Link href="/queen-bee" className="group relative px-8 py-4 border-2 border-cyber-pink text-cyber-pink font-semibold rounded-lg transition-all duration-300 hover:bg-cyber-pink hover:text-cyber-dark hover:shadow-lg hover:shadow-cyber-pink/25 flex items-center gap-2">
+            <Mic className="w-5 h-5" />
+            Talk to Queen Bee
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </Link>
         </motion.div>
 
         <motion.div
