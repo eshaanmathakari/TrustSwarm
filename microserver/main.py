@@ -11,7 +11,9 @@ load_dotenv()
 app = FastAPI(title="Coral Agent Microservice Gateway")
 
 # --- Environment Variables & Global Config ---
-MISTRAL_KEY = os.getenv("MISTRAL_KEY")
+MISTRAL_API_KEY = os.getenv("MISTRAL_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 FIRECRAWL_KEY = os.getenv("FIRECRAWL_API_KEY") # Added for the Firecrawl agent
 
 CORAL_SERVER_HOST = os.getenv("CORAL_SERVER_HOST", "http://localhost:5555")
@@ -40,6 +42,14 @@ def create_app_graph_request(user_request_str: str, worker_agent_names: list[str
     Creates the agent graph for a session.
     It now includes the Interface, Predict, AND Firecrawl agents.
     """
+
+    api_key_map = {
+        "predict0": MISTRAL_API_KEY, # Mistral
+        "predict1": GEMINI_API_KEY,   # Gemini
+        "predict2": GROQ_API_KEY,     # Groq
+        "predict3": MISTRAL_API_KEY, # Mistral
+    }
+
     # 1. Define the InterfaceAgent (The Orchestrator)
     interface_agent_config = {
         "id": {"name": "interface", "version": "0.0.1"},
@@ -56,6 +66,13 @@ def create_app_graph_request(user_request_str: str, worker_agent_names: list[str
     # 2. Define the PredictAgent(s) (The Workers)
     worker_agent_configs = []
     for name in worker_agent_names:
+
+        api_key_for_agent = api_key_map.get(name)
+        if not api_key_for_agent:
+            print(f"Warning: No specific API key found for agent '{name}'. It will not be created.")
+            continue
+    
+        print(api_key_for_agent)
         worker_agent_configs.append({
             "id": {"name": name, "version": "1.0.0"},
             "name": name,
@@ -64,7 +81,7 @@ def create_app_graph_request(user_request_str: str, worker_agent_names: list[str
             "blocking": True,
             "options": {
                 # The worker agents DO need their API key.
-                "MODEL_API_KEY": {"type": "string", "value": MISTRAL_KEY},
+                "MODEL_API_KEY": {"type": "string", "value": api_key_for_agent},
             },
             "customToolAccess": [],
         })
@@ -79,17 +96,27 @@ def create_app_graph_request(user_request_str: str, worker_agent_names: list[str
         "options": {
             # Pass the required API keys from our environment
             "FIRECRAWL_API_KEY": {"type": "string", "value": FIRECRAWL_KEY},
-            "MODEL_API_KEY": {"type": "string", "value": MISTRAL_KEY},
+            "MODEL_API_KEY": {"type": "string", "value": MISTRAL_API_KEY},
         },
         "customToolAccess": [],
     }
 
+    scoring_agent_config = {
+        "id": {"name": "scoring", "version": "1.0.0"},
+        "name": "scoring",
+        "provider": {"type": "local", "runtime": "executable"},
+        "coralPlugins": [],
+        "blocking": True,
+        "options": {}, # No special options needed for this deterministic agent
+        "customToolAccess": [],
+    }
+
     # 4. Combine all agents into one list
-    all_agents = [interface_agent_config, firecrawl_agent_config] + worker_agent_configs
+    all_agents = [interface_agent_config, firecrawl_agent_config, scoring_agent_config] + worker_agent_configs
     
     # 5. *** NEW: Add firecrawl to the communication group ***
     #    This allows the predict agents to talk to it.
-    all_agent_names = ["interface", "firecrawl"] + worker_agent_names
+    all_agent_names = ["interface", "firecrawl", "scoring"] + worker_agent_names
     
     return {
         "agents": all_agents,

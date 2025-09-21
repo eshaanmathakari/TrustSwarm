@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 import os, json, asyncio, traceback
 import logging
 from langchain_mcp_adapters.client import MultiServerMCPClient
-from langchain_groq import ChatGroq
+from langchain_mistralai import ChatMistralAI
 from langchain.prompts import ChatPromptTemplate
 
 
@@ -219,9 +219,9 @@ async def main():
         return
 
     logger.info("Initializing Mistral model...")
-    model = ChatGroq(
-        model_name=os.getenv("MODEL_NAME", "llama3-70b-8192"),
-        groq_api_key=os.getenv("MODEL_API_KEY"),
+    model = ChatMistralAI(
+        model=os.getenv("MODEL_NAME", "mistral-large-latest"),
+        mistral_api_key=os.getenv("MODEL_API_KEY"),
         temperature=float(os.getenv("MODEL_TEMPERATURE", "0.1")),
         max_tokens=int(os.getenv("MODEL_MAX_TOKENS", "8000")),
     )
