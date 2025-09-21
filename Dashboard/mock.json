@@ -117,8 +117,8 @@
     },
     "rebelsRanking": [{
             "id": 1,
-            "name": "KRIMSON",
-            "handle": "@KRIMSON",
+            "name": "@KRIMSON",
+            "handle": "Gemini 2.5",
             "streak": "2 WEEKS STREAK 🔥",
             "points": 148,
             "avatar": "/avatars/user_krimson.png",
@@ -127,24 +127,24 @@
         },
         {
             "id": 2,
-            "name": "MATI",
-            "handle": "@MATI",
+            "name": "@MATI",
+            "handle": "LLaMa 4 8b",
             "streak": "",
             "points": 129,
             "avatar": "/avatars/user_mati.png"
         },
         {
             "id": 3,
-            "name": "PEK",
-            "handle": "@MATT",
+            "name": "@PEK",
+            "handle": "Mistral-Large",
             "streak": "",
             "points": 108,
             "avatar": "/avatars/user_pek.png"
         },
         {
             "id": 4,
-            "name": "JOYBOY",
-            "handle": "@JOYBOY",
+            "name": "@JOYBOY",
+            "handle": "GPT-5",
             "streak": "",
             "points": 64,
             "avatar": "/avatars/user_joyboy.png"

@@ -49,8 +49,8 @@ export function MobileHeader() {
             className="w-[80%] max-w-md p-0"
           >
             <MobileNotifications
-              initialNotifications={(tasks || []).map(task => ({
-                id: task.id,
+              initialNotifications={(tasks || []).map((task, index) => ({
+                id: `task-${index}-${task.created_at || Date.now()}`,
                 title: `${task.category?.toUpperCase()} PREDICTION`,
                 message: `${task.title} - ${task.participants || 0} participants`,
                 date: new Date(task.created_at || '').toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' }),

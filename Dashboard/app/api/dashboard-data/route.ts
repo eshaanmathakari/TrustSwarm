@@ -117,9 +117,9 @@ export async function GET(request: NextRequest) {
         if (chartRes.error) throw chartRes.error
 
         // Calculate real metrics from data
-        const totalTasks = trendingRes.data?.length || 0
-        const totalVolume = trendingRes.data?.reduce((sum, task) => sum + (task.total_volume || 0), 0) || 0
-        const activeTasks = trendingRes.data?.filter(task => task.status === 'active').length || 0
+        const totalTasksCount = trendingRes.data?.length || 0
+        const totalVolumeCount = trendingRes.data?.reduce((sum, task) => sum + (task.total_volume || 0), 0) || 0
+        const activeTasksCount = trendingRes.data?.filter(task => task.status === 'active').length || 0
 
         result = {
           trending: trendingRes.data || [],
@@ -132,9 +132,9 @@ export async function GET(request: NextRequest) {
               streak: task.status === 'active' ? 'ACTIVE' : null
             })) || [],
             finance: {
-              guardBots: { count: `${Math.min(124, Math.floor(totalTasks * 1.2))}/124`, status: 'RUNNING...' },
-              firewall: { percentage: totalTasks > 0 ? '99.9%' : '0%', status: 'BLOCKED' },
-              htmlWarnings: { count: Math.floor(totalTasks * 0.8).toLocaleString(), status: 'ACCESSIBILITY' }
+              guardBots: { count: `${Math.min(124, Math.floor(totalTasksCount * 1.2))}/124`, status: 'RUNNING...' },
+              firewall: { percentage: totalTasksCount > 0 ? '99.9%' : '0%', status: 'BLOCKED' },
+              htmlWarnings: { count: Math.floor(totalTasksCount * 0.8).toLocaleString(), status: 'ACCESSIBILITY' }
             }
           },
           charts: {
