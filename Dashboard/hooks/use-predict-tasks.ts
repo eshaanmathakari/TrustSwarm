@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { PredictTask } from "@/lib/supabase";
 
 interface UsePredictTasksOptions {
@@ -93,11 +93,52 @@ export function usePredictTasks(options: UsePredictTasksOptions = {}): UsePredic
 
 // Specialized hooks for different sections
 export function useTrendingTasks() {
-    return usePredictTasks({
-        limit: 3,
-        status: 'active',
-        category: 'sports'
-    });
+    const [tasks, setTasks] = useState<PredictTask[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchTrendingTasks = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            // Fetch top 2 from sports
+            const sportsResponse = await fetch('/api/predict-tasks?category=sports&limit=2');
+            const sportsResult = await sportsResponse.json();
+
+            // Fetch top 2 from financial
+            const financeResponse = await fetch('/api/predict-tasks?category=financial&limit=2');
+            const financeResult = await financeResponse.json();
+
+            if (!sportsResponse.ok || !financeResponse.ok) {
+                throw new Error('Failed to fetch trending tasks');
+            }
+
+            // Combine and shuffle the results
+            const allTasks = [
+                ...(sportsResult.data || []),
+                ...(financeResult.data || [])
+            ];
+
+            setTasks(allTasks);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An error occurred');
+            console.error('Error fetching trending tasks:', err);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchTrendingTasks();
+    }, [fetchTrendingTasks]);
+
+    return {
+        tasks,
+        loading,
+        error,
+        refetch: fetchTrendingTasks
+    };
 }
 
 export function useSportsLeaderboard() {
