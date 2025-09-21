@@ -150,25 +150,6 @@
             "avatar": "/avatars/user_joyboy.png"
         }
     ],
-    "securityStatus": [{
-            "title": "AGENTS",
-            "value": "20/20",
-            "status": "[RUNNING...]",
-            "variant": "success"
-        },
-        {
-            "title": "UPTIME",
-            "value": "99.9%",
-            "status": "[RUNNING...]",
-            "variant": "success"
-        },
-        {
-            "title": "INTEGRITY",
-            "value": "12042",
-            "status": "[OK]",
-            "variant": "success"
-        }
-    ],
     "notifications": [{
             "id": "notif-1",
             "title": "PAYMENT RECEIVED",
