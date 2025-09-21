@@ -1,3 +1,5 @@
+"use client";
+
 import { Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import { Metadata } from "next";
@@ -8,6 +10,10 @@ import { MobileHeader } from "@/components/dashboard/mobile-header";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import Widget from "@/components/dashboard/widget";
 import Notifications from "@/components/dashboard/notifications";
+import { SecurityMetrics } from "@/components/dashboard/security-metrics";
+import { FloatingActionButton } from "@/components/elevenlabs/floating-action-button";
+import { ChatModal } from "@/components/elevenlabs/chat-modal";
+import { useState, useEffect } from "react";
 
 const robotoMono = Roboto_Mono({
   variable: "--font-roboto-mono",
@@ -22,21 +28,24 @@ const rebelGrotesk = localFont({
 
 const isV0 = process.env["VERCEL_URL"]?.includes("vusercontent.net") ?? false;
 
-export const metadata: Metadata = {
-  title: {
-    template: "%s – M.O.N.K.Y OS",
-    default: "M.O.N.K.Y OS",
-  },
-  description:
-    "The ultimate OS for rebels. Making the web for brave individuals.",
-  generator: 'v0.app'
-};
+// export const metadata: Metadata = {
+//   title: {
+//     template: "%s – M.O.N.K.Y OS",
+//     default: "M.O.N.K.Y OS",
+//   },
+//   description:
+//     "The ultimate OS for rebels. Making the web for brave individuals.",
+//   generator: 'v0.app'
+// };
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isVoiceActive, setIsVoiceActive] = useState(false);
+
   return (
     <html lang="en" className="dark">
       <head>
@@ -66,11 +75,22 @@ export default function RootLayout({
                 <div className="space-y-gap py-sides min-h-screen max-h-screen sticky top-0 overflow-clip">
                   <Widget />
                   <Notifications />
+                  <SecurityMetrics />
                 </div>
               </div>
             </div>
-
           </SidebarProvider>
+
+          {/* ElevenLabs Integration - Outside layout constraints */}
+          <FloatingActionButton 
+            onClick={() => setIsChatOpen(true)} 
+            isActive={isChatOpen && isVoiceActive}
+          />
+          <ChatModal 
+            open={isChatOpen} 
+            onOpenChange={setIsChatOpen}
+            onVoiceStateChange={setIsVoiceActive}
+          />
         </V0Provider>
       </body>
     </html>
