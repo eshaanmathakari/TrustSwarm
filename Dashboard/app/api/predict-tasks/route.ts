@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     if (category) {
       query = query.eq('category', category)
     }
-    
+
     if (status) {
       query = query.eq('status', status)
     }
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    
+
     const { data, error } = await supabase
       .from('predict_tasks')
       .insert([body])
