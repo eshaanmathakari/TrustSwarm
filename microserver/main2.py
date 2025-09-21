@@ -2,92 +2,114 @@ import os
 import asyncio
 import json
 from fastapi import FastAPI, HTTPException, Body
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from dotenv import load_dotenv
 import httpx
 
-# ... (FastAPI app setup, load_dotenv, etc. remains the same) ...
+# --- Boilerplate Setup ---
 load_dotenv()
-app = FastAPI()
+app = FastAPI(title="Coral Agent Microservice Gateway")
 
-# --- Environment Variables ---
-MISTRAL_KEY = os.getenv("MISTRAL_KEY")
+# --- Environment Variables & Global Config ---
+MISTRAL_KEY = os.getenv("MISTRAL_KEY") # This will be for the PredictAgents
+# The InterfaceAgent doesn't use an LLM, but the provider requires a key.
+# We can use a dummy key or the same one.
+INTERFACE_DUMMY_KEY = os.getenv("INTERFACE_DUMMY_KEY", "no-key-needed")
+
 CORAL_SERVER_HOST = os.getenv("CORAL_SERVER_HOST", "http://localhost:5555")
 THIS_HOST = os.getenv("THIS_HOST", "http://localhost:8000")
 
-# --- Custom Tool Definition (This part stays the same) ---
+# The custom tool allows the InterfaceAgent to call back to this service.
 customTools = {
     "prediction-result": {
-        "transport": { "type": "http", "url": f"{THIS_HOST}/mcp/prediction-result" },
+        "transport": {"type": "http", "url": f"{THIS_HOST}/mcp/prediction-result"},
         "toolSchema": {
           "name": "send_prediction_result",
-          "description": "Send the final prediction result back.",
+          "description": "Send the final, aggregated prediction result back.",
           "inputSchema": {
             "type": "object",
-            "properties": { "result": { "type": "string" } },
+            "properties": {"result": {"type": "string"}},
             "required": ["result"]
           }
         }
     }
 }
 
-# --- MODIFIED Agent Graph Creation ---
+# --- Agent Graph Creation ---
 
-def create_app_graph_request(query: str):
+def create_app_graph_request(user_request_str: str, worker_agent_names: list[str]):
     """
-    MODIFIED: This function now attempts to call the 'predict0' agent directly.
-    - We remove the 'interface' agent.
-    - We give the 'USER_REQUEST' option directly to 'predict0'.
-    - We give 'predict0' access to the callback tool.
+    Creates the agent graph for a session.
+    It always includes one InterfaceAgent and a list of worker PredictAgents.
     """
-    predict_agent_config = {
-        "id": {"name": "predict0", "version": "1.0.0"},
-        "name": "predict0",
-        "coralPlugins": [],
+    # 1. Define the InterfaceAgent (The Orchestrator)
+    interface_agent_config = {
+        "id": {"name": "interface", "version": "0.0.1"},
+        "name": "interface",
         "provider": {"type": "local", "runtime": "executable"},
+        "coralPlugins": [],
         "blocking": True,
         "options": {
-            "MODEL_API_KEY": {"type": "string", "value": MISTRAL_KEY},
-            # We are now passing the user's request directly to this agent
-            "USER_REQUEST": {"type": "string", "value": query}
+            # The ONLY option this deterministic agent needs is its instructions.
+            "USER_REQUEST": {"type": "string", "value": user_request_str}
+            # "MODEL_API_KEY" has been removed, as the agent no longer accepts it.
         },
-        # We grant predict0 the ability to call our callback tool
         "customToolAccess": ["prediction-result"],
     }
+
+    # 2. Define the PredictAgent(s) (The Workers)
+    worker_agent_configs = []
+    for name in worker_agent_names:
+        worker_agent_configs.append({
+            "id": {"name": name, "version": "1.0.0"},
+            "name": name,
+            "provider": {"type": "local", "runtime": "executable"},
+            "coralPlugins": [],
+            "blocking": True,
+            "options": {
+                # The worker agents DO need their API key.
+                "MODEL_API_KEY": {"type": "string", "value": MISTRAL_KEY},
+            },
+            "customToolAccess": [],
+        })
+
+    all_agents = [interface_agent_config] + worker_agent_configs
     
-    final_req = {
-        "agents": [predict_agent_config], # Only our agent is in the graph
-        "groups": [], # No groups needed for a single agent
+    # 3. Define the communication group (as you correctly pointed out)
+    all_agent_names = ["interface"] + worker_agent_names
+    
+    return {
+        "agents": all_agents,
+        "groups": [all_agent_names],
         "customTools": customTools
     }
-    return final_req
 
+# --- Pydantic Models for API Validation ---
 
-# --- API Endpoints (These remain the same) ---
-pending_predictions: dict[str, asyncio.Future] = {}
-
-class Source(BaseModel):
-    url: str
-    name: str
-
-class PredictionRequest(BaseModel):
+class PredictionData(BaseModel):
     title: str
     markets: list[str]
-    sources: list[Source]
+    # Sources are now optional, as the agent can find its own
+    sources: list[dict] | None = None
 
 class PredictionResult(BaseModel):
     result: str
 
-@app.post("/predict")
-async def predict(request: PredictionRequest):
+# Dictionary to hold pending requests while they are being processed by the agents
+pending_predictions: dict[str, asyncio.Future] = {}
+
+
+# --- Core API Logic (Shared by all endpoints) ---
+
+async def start_session_and_wait_for_result(agent_graph: dict):
+    """Handles session creation and awaits the callback from the InterfaceAgent."""
     loop = asyncio.get_event_loop()
     future = loop.create_future()
     
-    request_json_string = request.model_dump_json()
     payload = {
         "privacyKey": "privkey",
         "applicationId": "predictionApp",
-        "agentGraphRequest": create_app_graph_request(request_json_string),
+        "agentGraphRequest": agent_graph,
     }
 
     session_id = None
@@ -105,25 +127,71 @@ async def predict(request: PredictionRequest):
     pending_predictions[session_id] = future
 
     try:
-        print(f"Waiting for result from session: {session_id} with predict0 as the direct agent.")
-        # We will set a shorter timeout here to see the result faster
-        result = await asyncio.wait_for(future, timeout=45) 
+        print(f"Waiting for result from InterfaceAgent in session: {session_id}")
+        # Give the agents up to 5 minutes to complete the work
+        result = await asyncio.wait_for(future, timeout=300) 
+        return json.loads(result)
     except asyncio.TimeoutError:
-        print("Request timed out as predicted.")
-        raise HTTPException(status_code=504, detail="Prediction request timed out. The agent never called back.")
+        raise HTTPException(status_code=504, detail="The agent orchestration timed out.")
     finally:
         pending_predictions.pop(session_id, None)
-    
-    # This line will likely not be reached
-    return {"result": result}
 
+
+# --- API Endpoints ---
+
+@app.post("/predict/single/{agent_name}")
+async def predict_single(agent_name: str, request_data: PredictionData):
+    """Endpoint for a single prediction from a specific agent."""
+    # Create the structured USER_REQUEST for the InterfaceAgent
+    user_request_str = json.dumps({
+      "task": "single",
+      "payload": {
+        "agent_name": agent_name,
+        "request_data": request_data.model_dump()
+      }
+    })
+    
+    # Create an agent graph with the interface and the one targeted worker
+    agent_graph = create_app_graph_request(user_request_str, worker_agent_names=[agent_name])
+    
+    return await start_session_and_wait_for_result(agent_graph)
+
+
+@app.post("/predict/benchmark")
+async def predict_benchmark(request_data: PredictionData):
+    """Endpoint for running a benchmark across multiple agents."""
+    # Here we hardcode the agents we want to use for the benchmark.
+    # This could also come from a config file or another service.
+    benchmark_agents = ["predict0", "predict1",] # "predict2"] 
+
+    # Create the structured USER_REQUEST for the InterfaceAgent
+    user_request_str = json.dumps({
+      "task": "benchmark",
+      "payload": {
+        "agent_prefix": "predict", # The interface will find all agents with this prefix
+        "request_data": request_data.model_dump()
+      }
+    })
+
+    # Create an agent graph with the interface and all benchmark workers
+    agent_graph = create_app_graph_request(user_request_str, worker_agent_names=benchmark_agents)
+
+    return await start_session_and_wait_for_result(agent_graph)
+
+
+# --- Callback Endpoint (No changes needed) ---
 
 @app.post("/mcp/prediction-result/{session_id}/{agent_id}")
 async def mcp_prediction_result(session_id: str, agent_id: str, body: PredictionResult = Body(...)):
-    print(f"SUCCESS: Received result for session {session_id} from agent {agent_id}")
+    """This is the callback URL that the InterfaceAgent calls to deliver the final result."""
+    print(f"SUCCESS: Received result for session {session_id} from {agent_id}")
     future = pending_predictions.get(session_id)
     if not future:
-        raise HTTPException(status_code=404, detail="No pending request for this session.")
+        # This can happen if the request already timed out
+        print(f"Warning: Received result for an unknown or timed-out session: {session_id}")
+        return {"status": "ignored"}
+        
     if not future.done():
         future.set_result(body.result)
+    
     return {"status": "success"}

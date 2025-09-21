@@ -9,17 +9,7 @@ description = "API key for the model provider"
 [options.MODEL_NAME]
 type = "string"
 description = "What model to use (e.g 'gpt-4.1')"
-default = "llama-3.3-70b-versatile"
-
-[options.MODEL_PROVIDER]
-type = "string"
-description = "What model provider to use (e.g 'openai', etc)"
-default = "groq"
-
-[options.MODEL_BASE_URL]
-type = "string"
-description = "What model provider to use (e.g 'openai', etc)"
-default = "https://api.groq.com"
+default = "mistral-small-2506"
 
 [options.MODEL_MAX_TOKENS]
 type = "string"

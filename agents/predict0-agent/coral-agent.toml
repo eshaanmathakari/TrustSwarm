@@ -2,11 +2,6 @@
 name = "predict0"
 version = "1.0.0"
 
-[options.USER_REQUEST]
-type = "string"
-required = true
-description = "The user request to fulfill"
-
 [options.MODEL_API_KEY]
 type = "string"
 description = "API key for the model provider"
@@ -14,7 +9,7 @@ description = "API key for the model provider"
 [options.MODEL_NAME]
 type = "string"
 description = "What model to use (e.g 'gpt-4.1')"
-default = "mistral-large-latest"
+default = "mistral-small-2506"
 
 [options.MODEL_MAX_TOKENS]
 type = "string"

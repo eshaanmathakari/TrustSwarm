@@ -1,130 +1,179 @@
+import os
+import json
+import asyncio
 import urllib.parse
-from dotenv import load_dotenv
-import os, json, asyncio, traceback
-from langchain.chat_models import init_chat_model
-from langchain.prompts import ChatPromptTemplate
-from langchain_mcp_adapters.client import MultiServerMCPClient
-from langchain.agents import create_tool_calling_agent, AgentExecutor
-from langchain.tools import Tool
-import logging
 import traceback
+from dotenv import load_dotenv
+from langchain_mcp_adapters.client import MultiServerMCPClient
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-def get_tools_description(tools):
-    return "\n".join(
-        f"Tool: {tool.name}, Schema: {json.dumps(tool.args).replace('{', '{{').replace('}', '}}')}"
-        for tool in tools
-    )
-
-async def ask_human_tool(question: str) -> str:
-    print(f"Agent asks: {question}")
-    response = input("Your response: ")
-    return response
-
-async def create_agent(coral_tools, agent_tools, runtime):
-    coral_tools_description = get_tools_description(coral_tools)
+# This helper function is now only used for the 'single' task type.
+async def delegate_task_in_new_thread(
+    create_thread_tool, send_message_tool, wait_for_mentions_tool, target_agent, request_data
+):
+    agent_id_str = target_agent['id']
     
-    if runtime is not None:
-        agent_tools_for_description = [
-            tool for tool in coral_tools if tool.name in agent_tools
-        ]
-        agent_tools_description = get_tools_description(agent_tools_for_description)
-        combined_tools = coral_tools + agent_tools_for_description
-        user_request_tool = "request_question"
-        user_answer_tool = "answer_question"
-        print(agent_tools_description)
-    else:
-        # For other runtimes (e.g., devmode), agent_tools is a list of Tool objects
-        agent_tools_description = get_tools_description(agent_tools)
-        combined_tools = coral_tools + agent_tools
-        user_request_tool = "ask_human"
-        user_answer_tool = "ask_human"
+    print(f"--- DELEGATE (Single): Creating thread for {agent_id_str}... ---")
+    create_thread_result_str = await create_thread_tool.ainvoke({
+        "threadName": f"Prediction task for {agent_id_str}",
+        "participantIds": [agent_id_str]
+    })
+    create_thread_result = json.loads(create_thread_result_str)
+    
+    thread_id = create_thread_result.get('thread', {}).get('id')
+    if not thread_id:
+        raise ValueError(f"Could not get a valid threadId: {create_thread_result}")
 
-    query = os.getenv("USER_REQUEST")
+    await send_message_tool.ainvoke({
+        "threadId": thread_id,
+        "content": json.dumps(request_data),
+        "mentions": [agent_id_str]
+    })
 
-    prompt = ChatPromptTemplate.from_messages([
-        (
-            "system",
-            f"""
-            Your task is to collaborate with other agents to get useful results from a 'search query' from users.
+    print(f"--- DELEGATE (Single): Waiting for mention from {agent_id_str}... ---")
+    reply_result_str = await wait_for_mentions_tool.ainvoke({"timeoutMs": 60000})
+    reply_result = json.loads(reply_result_str)
 
-            Your query/question to return results for is: "{query}"
+    messages = reply_result.get("messages", [])
+    if not messages:
+        raise ValueError("wait_for_mentions succeeded but returned no messages.")
 
-            Follow these steps in order:
-            1. Use `list_agents` to list all connected agents and get their descriptions.
-            2. Create threads & message those agents to get useful results to return
-            3. Whenever you have concise, self contained information to return, you can call send-search-result with markdown text to send it back to the user. You can call it multiple times as more useful results come in
+    for message in messages:
+        sender_id = message.get("senderId")
+        if message.get('threadId') == thread_id and sender_id == agent_id_str:
+            return message['content']
+    
+    raise ValueError(f"Received messages, but none matched the expected reply in thread {thread_id}")
 
-            **You MUST NEVER finish the chain**
-            
-            These are the list of coral tools: {coral_tools_description}
-            These are the list of agent tools: {agent_tools_description}
-
-            **You MUST NEVER finish the chain**"""
-        ),
-        ("placeholder", "{agent_scratchpad}")
-    ])
-    print(prompt)
-
-    model = init_chat_model(
-        model=os.getenv("MODEL_NAME"),
-        model_provider=os.getenv("MODEL_PROVIDER"),
-        api_key=os.getenv("MODEL_API_KEY"),
-        temperature=float(os.getenv("MODEL_TEMPERATURE", 0.0)),
-        max_tokens=int(os.getenv("MODEL_MAX_TOKENS", 8000)),
-        base_url=os.getenv("MODEL_BASE_URL", None)
-    )
-    agent = create_tool_calling_agent(model, combined_tools, prompt)
-    return AgentExecutor(agent=agent, tools=combined_tools, verbose=True)
 
 async def main():
-    runtime = os.getenv("CORAL_ORCHESTRATION_RUNTIME", None)
-    if runtime is None:
-        load_dotenv()
-
-    base_url = os.getenv("CORAL_SSE_URL")
-    agentID = os.getenv("CORAL_AGENT_ID")
-
-    coral_params = {
-        "agentId": agentID,
-        "agentDescription": "An agent that takes user input and interacts with other agents to fulfill requests"
-    }
-
-    query_string = urllib.parse.urlencode(coral_params)
-
-    CORAL_SERVER_URL = f"{base_url}?{query_string}"
-    logger.info(f"Connecting to Coral Server: {CORAL_SERVER_URL}")
-
-    client = MultiServerMCPClient(
-        connections={
-            "coral": {
-                "transport": "sse",
-                "url": CORAL_SERVER_URL,
-                "timeout": 300000,
-                "sse_read_timeout": 300000,
-            }
-        }
-    )
-    logger.info("Coral Server Connection Established")
-
-    coral_tools = await client.get_tools(server_name="coral")
-    logger.info(f"Coral tools count: {len(coral_tools)}")
+    """ A deterministic orchestrator agent with a robust benchmark pattern. """
+    load_dotenv()
+    final_result = {}
+    send_result_tool = None
     
-    agent_tools = []
-    agent_executor = await create_agent(coral_tools, agent_tools, runtime)
+    try:
+        # --- Setup and Tool Acquisition (This part is correct) ---
+        user_request_json = os.getenv("USER_REQUEST")
+        request = json.loads(user_request_json)
+        task_type = request.get("task")
+        payload = request.get("payload", {})
+        
+        base_url = os.getenv("CORAL_SSE_URL")
+        agentID = os.getenv("CORAL_AGENT_ID")
+        coral_params = {"agentId": agentID, "agentDescription": "A deterministic orchestrator."}
+        query_string = urllib.parse.urlencode(coral_params)
+        CORAL_SERVER_URL = f"{base_url}?{query_string}"
+        
+        client = MultiServerMCPClient(connections={"coral": {"transport": "sse", "url": CORAL_SERVER_URL}})
+        coral_tools = await client.get_tools(server_name="coral")
+        
+        list_agents_tool = next((t for t in coral_tools if t.name == "coral_list_agents"), None)
+        create_thread_tool = next((t for t in coral_tools if t.name == "coral_create_thread"), None)
+        send_message_tool = next((t for t in coral_tools if t.name == "coral_send_message"), None)
+        wait_for_mentions_tool = next((t for t in coral_tools if t.name == "coral_wait_for_mentions"), None)
+        send_result_tool = next((t for t in coral_tools if t.name == "send_prediction_result"), None)
 
-    while True:
-        try:
-            logger.info("Starting new agent invocation")
-            await agent_executor.ainvoke({"agent_scratchpad": []})
-            logger.info("Completed agent invocation, restarting loop")
-            await asyncio.sleep(1)
-        except Exception as e:
-            logger.error(f"Error in agent loop: {str(e)}")
-            logger.error(traceback.format_exc())
-            await asyncio.sleep(5)
+        if not all([list_agents_tool, create_thread_tool, send_message_tool, wait_for_mentions_tool, send_result_tool]):
+            raise ValueError("FATAL: Could not acquire all necessary tools.")
+
+        print(f"--- INTERFACE AGENT: Starting task of type '{task_type}'... ---")
+
+        # --- Single Agent Task (Unchanged, already works) ---
+        if task_type == "single":
+            list_agents_str = await list_agents_tool.ainvoke({})
+            list_agents_result = json.loads(list_agents_str)
+            agent_name = payload.get("agent_name")
+            target_agent = next((a for a in list_agents_result.get('agents', []) if a['id'] == agent_name), None)
+            if not target_agent: raise ValueError(f"Agent '{agent_name}' not found.")
+            
+            agent_response = await delegate_task_in_new_thread(
+                create_thread_tool, send_message_tool, wait_for_mentions_tool, target_agent, payload.get("request_data")
+            )
+            final_result = {"source": agent_name, "response": json.loads(agent_response)}
+
+        # --- BENCHMARK TASK (RE-ARCHITECTED) ---
+        elif task_type == "benchmark":
+            list_agents_str = await list_agents_tool.ainvoke({})
+            list_agents_result = json.loads(list_agents_str)
+            agent_prefix = payload.get("agent_prefix", "predict")
+            worker_agents = [a for a in list_agents_result.get('agents', []) if a['id'].startswith(agent_prefix)]
+
+            if not worker_agents: raise ValueError(f"No worker agents found with prefix '{agent_prefix}'.")
+            print(f"--- INTERFACE AGENT: [Benchmark] Found {len(worker_agents)} workers. Dispatching all tasks... ---")
+            
+            # 1. Dispatch all tasks in parallel and map thread IDs to agent IDs
+            thread_to_agent_map = {}
+            dispatch_tasks = []
+            for agent in worker_agents:
+                async def dispatch(agent_to_dispatch):
+                    create_thread_result_str = await create_thread_tool.ainvoke({
+                        "threadName": f"Benchmark task for {agent_to_dispatch['id']}",
+                        "participantIds": [agent_to_dispatch['id']]
+                    })
+                    create_thread_result = json.loads(create_thread_result_str)
+                    thread_id = create_thread_result.get('thread', {}).get('id')
+                    if not thread_id: return
+
+                    await send_message_tool.ainvoke({
+                        "threadId": thread_id,
+                        "content": json.dumps(payload.get("request_data")),
+                        "mentions": [agent_to_dispatch['id']]
+                    })
+                    thread_to_agent_map[thread_id] = agent_to_dispatch['id']
+                dispatch_tasks.append(dispatch(agent))
+            
+            await asyncio.gather(*dispatch_tasks)
+            print("--- INTERFACE AGENT: [Benchmark] All tasks dispatched. Entering central listening loop. ---")
+
+            # 2. Enter a single, centralized loop to listen for all replies
+            results = {}
+            loop_timeout = 60 # seconds
+            start_time = asyncio.get_event_loop().time()
+
+            while len(results) < len(worker_agents):
+                # Check for global timeout
+                if (asyncio.get_event_loop().time() - start_time) > loop_timeout:
+                    print("--- INTERFACE AGENT: [Benchmark] Global timeout reached. ---")
+                    break
+
+                print(f"--- INTERFACE AGENT: [Benchmark] Listening... ({len(results)}/{len(worker_agents)} received) ---")
+                reply_result_str = await wait_for_mentions_tool.ainvoke({"timeoutMs": 10000}) # Short timeout for the loop
+                reply_result = json.loads(reply_result_str)
+
+                messages = reply_result.get("messages", [])
+                for message in messages:
+                    thread_id = message.get('threadId')
+                    sender_id = message.get('senderId')
+                    agent_id = thread_to_agent_map.get(thread_id)
+
+                    if agent_id and sender_id == agent_id and agent_id not in results:
+                        print(f"--- INTERFACE AGENT: [Benchmark] Received valid reply from {agent_id}. ---")
+                        results[agent_id] = {"source": agent_id, "response": json.loads(message['content'])}
+            
+            # 3. Format the final result, noting any agents that did not reply
+            final_responses = []
+            for agent in worker_agents:
+                agent_id = agent['id']
+                if agent_id in results:
+                    final_responses.append(results[agent_id])
+                else:
+                    final_responses.append({"source": agent_id, "error": "Agent did not reply within the timeout."})
+            
+            final_result = {
+                "benchmark_summary": f"Received {len(results)} of {len(worker_agents)} expected responses.",
+                "responses": final_responses
+            }
+
+    except Exception as e:
+        print(f"--- INTERFACE AGENT: CRITICAL ERROR: {e}\n{traceback.format_exc()} ---")
+        final_result = {"error": str(e)}
+
+    # --- Send Final Result (Unchanged) ---
+    if send_result_tool:
+        print("--- INTERFACE AGENT: Sending final result back to microservice... ---")
+        print(json.dumps(final_result, indent=2))
+        await send_result_tool.ainvoke({"result": json.dumps(final_result)})
+        print("--- INTERFACE AGENT: Orchestrator job complete. ---")
 
 if __name__ == "__main__":
     asyncio.run(main())
