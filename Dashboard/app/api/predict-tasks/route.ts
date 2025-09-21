@@ -6,7 +6,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const limit = searchParams.get('limit') || '50'
     const category = searchParams.get('category')
-    const status = searchParams.get('status')
 
     // Build the query
     let query = supabase
@@ -18,10 +17,6 @@ export async function GET(request: NextRequest) {
     // Add filters if provided
     if (category) {
       query = query.eq('category', category)
-    }
-
-    if (status) {
-      query = query.eq('status', status)
     }
 
     const { data, error } = await query
@@ -52,7 +47,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-
+    
     const { data, error } = await supabase
       .from('predict_tasks')
       .insert([body])
