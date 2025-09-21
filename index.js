@@ -99,10 +99,7 @@ const predictionWSS = new PredictionWebSocketServer(config.WEBSOCKET_PORT);
 
 // Legacy WebSocket server for general communication
 const wss = new WebSocket.Server({ 
-<<<<<<< Current (Your changes)
-=======
   port: config.WEBSOCKET_PORT + 1,
->>>>>>> Incoming (Background Agent changes)
   server: server 
 });
 
