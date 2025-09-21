@@ -84,7 +84,7 @@ export function ApiLeaderboard({ type, title, icon: Icon }: LeaderboardProps) {
                         </div>
                     ) : (
                         tasks.map((task, index) => (
-                            <div key={task.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                            <div key={`${task.title}-${task.created_at}-${index}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
                                 <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
                                     <span className="text-xs font-bold text-primary">
                                         {index + 1}
@@ -98,22 +98,18 @@ export function ApiLeaderboard({ type, title, icon: Icon }: LeaderboardProps) {
                                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                                         <span className="flex items-center gap-1">
                                             <Users className="w-3 h-3" />
-                                            {task.participants || 0}
+                                            {task.answers?.length || 0} answers
                                         </span>
-                                        {task.total_volume && (
-                                            <span className="flex items-center gap-1">
-                                                <DollarSign className="w-3 h-3" />
-                                                ${task.total_volume.toLocaleString()}
-                                            </span>
-                                        )}
+                                        <span className="flex items-center gap-1">
+                                            <TrendingUp className="w-3 h-3" />
+                                            {task.category}
+                                        </span>
                                     </div>
                                 </div>
 
-                                {task.odds && (
-                                    <Badge variant="outline" className="text-xs flex-shrink-0">
-                                        {task.odds}x
-                                    </Badge>
-                                )}
+                                <Badge variant="outline" className="text-xs flex-shrink-0">
+                                    {task.event_ticker || 'TASK'}
+                                </Badge>
                             </div>
                         ))
                     )}
