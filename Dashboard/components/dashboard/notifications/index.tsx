@@ -8,14 +8,21 @@ import { Bullet } from "@/components/ui/bullet";
 import NotificationItem from "./notification-item";
 import type { Notification } from "@/types/dashboard";
 import { AnimatePresence, motion } from "framer-motion";
+import { usePredictTasks } from "@/hooks/use-predict-tasks";
 
-interface NotificationsProps {
-  initialNotifications: Notification[];
-}
+export default function Notifications() {
+  const { tasks } = usePredictTasks({ limit: 10 });
 
-export default function Notifications({
-  initialNotifications,
-}: NotificationsProps) {
+  // Convert tasks to notifications
+  const initialNotifications: Notification[] = (tasks || []).map(task => ({
+    id: task.id,
+    title: `${task.category?.toUpperCase()} PREDICTION`,
+    message: `${task.title} - ${task.participants || 0} participants`,
+    date: new Date(task.created_at || '').toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' }),
+    type: task.status === 'active' ? 'info' : 'system',
+    read: false
+  }));
+
   const [notifications, setNotifications] =
     useState<Notification[]>(initialNotifications);
   const [showAll, setShowAll] = useState(false);

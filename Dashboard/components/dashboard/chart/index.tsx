@@ -10,11 +10,10 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import mockDataJson from "@/mock.json";
 import { Bullet } from "@/components/ui/bullet";
-import type { MockData, TimePeriod } from "@/types/dashboard";
+import { usePredictTasks } from "@/hooks/use-predict-tasks";
 
-const mockData = mockDataJson as MockData;
+type TimePeriod = "week" | "month" | "year";
 
 type ChartDataPoint = {
   date: string;
@@ -40,11 +39,45 @@ const chartConfig = {
 
 export default function DashboardChart() {
   const [activeTab, setActiveTab] = React.useState<TimePeriod>("week");
+  const { tasks, loading } = usePredictTasks({ limit: 30 });
 
   const handleTabChange = (value: string) => {
     if (value === "week" || value === "month" || value === "year") {
       setActiveTab(value as TimePeriod);
     }
+  };
+
+  // Generate chart data from real tasks
+  const generateChartData = (period: TimePeriod): ChartDataPoint[] => {
+    if (!tasks.length) return [];
+
+    const now = new Date();
+    const daysBack = period === "week" ? 7 : period === "month" ? 30 : 365;
+    const data: ChartDataPoint[] = [];
+
+    for (let i = daysBack - 1; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+
+      // Filter tasks for this date
+      const dayTasks = tasks.filter(task => {
+        const taskDate = new Date(task.created_at || '');
+        return taskDate.toDateString() === date.toDateString();
+      });
+
+      const spendings = dayTasks.reduce((sum, task) => sum + (task.participants || 0), 0);
+      const sales = dayTasks.reduce((sum, task) => sum + (task.total_volume || 0), 0);
+      const coffee = Math.floor(sales / 1000); // Convert volume to coffee units
+
+      data.push({
+        date: date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' }),
+        spendings,
+        sales,
+        coffee
+      });
+    }
+
+    return data;
   };
 
   const formatYAxisValue = (value: number) => {
@@ -200,13 +233,31 @@ export default function DashboardChart() {
         </div>
       </div>
       <TabsContent value="week" className="space-y-4">
-        {renderChart(mockData.chartData.week)}
+        {loading ? (
+          <div className="bg-accent rounded-lg p-3 h-32 flex items-center justify-center">
+            <div className="text-muted-foreground">Loading chart data...</div>
+          </div>
+        ) : (
+          renderChart(generateChartData("week"))
+        )}
       </TabsContent>
       <TabsContent value="month" className="space-y-4">
-        {renderChart(mockData.chartData.month)}
+        {loading ? (
+          <div className="bg-accent rounded-lg p-3 h-32 flex items-center justify-center">
+            <div className="text-muted-foreground">Loading chart data...</div>
+          </div>
+        ) : (
+          renderChart(generateChartData("month"))
+        )}
       </TabsContent>
       <TabsContent value="year" className="space-y-4">
-        {renderChart(mockData.chartData.year)}
+        {loading ? (
+          <div className="bg-accent rounded-lg p-3 h-32 flex items-center justify-center">
+            <div className="text-muted-foreground">Loading chart data...</div>
+          </div>
+        ) : (
+          renderChart(generateChartData("year"))
+        )}
       </TabsContent>
     </Tabs>
   );

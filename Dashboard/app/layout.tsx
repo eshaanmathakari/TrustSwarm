@@ -6,12 +6,8 @@ import localFont from "next/font/local";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { MobileHeader } from "@/components/dashboard/mobile-header";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
-import mockDataJson from "@/mock.json";
-import type { MockData } from "@/types/dashboard";
 import Widget from "@/components/dashboard/widget";
 import Notifications from "@/components/dashboard/notifications";
-
-const mockData = mockDataJson as MockData;
 
 const robotoMono = Roboto_Mono({
   variable: "--font-roboto-mono",
@@ -58,7 +54,7 @@ export default function RootLayout({
         <V0Provider isV0={isV0}>
           <SidebarProvider>
             {/* Mobile Header - only visible on mobile */}
-            <MobileHeader mockData={mockData} />
+            <MobileHeader />
 
             {/* Desktop Layout */}
             <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-gap lg:px-sides">
@@ -69,9 +65,7 @@ export default function RootLayout({
               <div className="col-span-3 hidden lg:block">
                 <div className="space-y-gap py-sides min-h-screen max-h-screen sticky top-0 overflow-clip">
                   <Widget />
-                  <Notifications
-                    initialNotifications={mockData.notifications}
-                  />
+                  <Notifications />
                 </div>
               </div>
             </div>

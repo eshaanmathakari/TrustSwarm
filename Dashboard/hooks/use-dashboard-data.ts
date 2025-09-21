@@ -31,17 +31,12 @@ export interface DashboardData {
 }
 
 export interface PredictTask {
-  id: string
   title: string
-  description?: string
-  odds?: number
-  status?: string
-  created_at?: string
-  updated_at?: string
-  category?: string
-  end_date?: string
-  participants?: number
-  total_volume?: number
+  answers: string[]
+  sources: string[]
+  created_at: string
+  category: string
+  event_ticker: string
 }
 
 export function useDashboardData() {
@@ -80,7 +75,7 @@ export function useDashboardData() {
   return { data, loading, error, refetch: () => window.location.reload() }
 }
 
-export function usePredictTasks(filters?: { category?: string; status?: string; limit?: number }) {
+export function usePredictTasks(filters?: { category?: string; limit?: number }) {
   const [data, setData] = useState<PredictTask[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -92,7 +87,6 @@ export function usePredictTasks(filters?: { category?: string; status?: string; 
         const params = new URLSearchParams()
         
         if (filters?.category) params.append('category', filters.category)
-        if (filters?.status) params.append('status', filters.status)
         if (filters?.limit) params.append('limit', filters.limit.toString())
         
         const response = await fetch(`/api/predict-tasks?${params.toString()}`)
@@ -117,7 +111,7 @@ export function usePredictTasks(filters?: { category?: string; status?: string; 
     }
 
     fetchData()
-  }, [filters?.category, filters?.status, filters?.limit])
+  }, [filters?.category, filters?.limit])
 
   return { data, loading, error }
 }
