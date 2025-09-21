@@ -111,7 +111,7 @@ export function useSportsLeaderboard() {
 export function useFinanceLeaderboard() {
     return usePredictTasks({
         limit: 10,
-        category: 'finance',
+        category: 'financial',
         status: 'active'
     });
 }

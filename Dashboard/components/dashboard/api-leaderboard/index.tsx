@@ -8,7 +8,7 @@ import { useSportsLeaderboard, useFinanceLeaderboard } from "@/hooks/use-predict
 import { Trophy, TrendingUp, Users, DollarSign } from "lucide-react";
 
 interface LeaderboardProps {
-    type: 'sports' | 'finance';
+    type: 'sports' | 'financial';
     title: string;
     icon: React.ElementType;
 }
@@ -132,7 +132,7 @@ export function SportsLeaderboard() {
 export function FinanceLeaderboard() {
     return (
         <ApiLeaderboard
-            type="finance"
+            type="financial"
             title="Finance Leaderboard"
             icon={DollarSign}
         />
