@@ -20,7 +20,7 @@ const securityMetrics = [
     },
     {
         "title": "INTEGRITY",
-        "value": "12042",
+        "value": "100%",
         "status": "[OK]",
         "variant": "default" as const
     }
