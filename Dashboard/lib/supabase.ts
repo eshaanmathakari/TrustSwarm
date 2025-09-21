@@ -7,17 +7,12 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Types for predict_tasks table
 export interface PredictTask {
-  id: string
   title: string
-  description?: string
-  odds?: number
-  status?: string
-  created_at?: string
-  updated_at?: string
-  category?: string
-  end_date?: string
-  participants?: number
-  total_volume?: number
+  answers: string[]
+  sources: string[]
+  created_at: string
+  category: string
+  event_ticker: string
 }
 
 export interface PredictTaskResponse {
