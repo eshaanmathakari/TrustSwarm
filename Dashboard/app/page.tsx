@@ -2,9 +2,8 @@
 
 import DashboardPageLayout from "@/components/dashboard/layout";
 import DashboardStat from "@/components/dashboard/stat";
-import DashboardChart from "@/components/dashboard/chart";
 import { TrendingSection } from "@/components/dashboard/trending-section";
-import { SportsLeaderboard, FinanceLeaderboard } from "@/components/dashboard/api-leaderboard";
+import { FakeSportsLeaderboard, FakeFinanceLeaderboard } from "@/components/dashboard/fake-leaderboards";
 import BracketsIcon from "@/components/icons/brackets";
 import GearIcon from "@/components/icons/gear";
 import ProcessorIcon from "@/components/icons/proccesor";
@@ -23,9 +22,9 @@ export default function DashboardOverview() {
 
   // Generate real stats from API data
   const totalTasks = tasks.length;
-  const activeTasks = tasks.filter(task => task.status === 'active').length;
-  const totalVolume = tasks.reduce((sum, task) => sum + (task.total_volume || 0), 0);
-  const totalParticipants = tasks.reduce((sum, task) => sum + (task.participants || 0), 0);
+  const totalAnswers = tasks.reduce((sum, task) => sum + (task.answers?.length || 0), 0);
+  const totalSources = tasks.reduce((sum, task) => sum + (task.sources?.length || 0), 0);
+  const categoriesCount = new Set(tasks.map(task => task.category)).size;
 
   const dashboardStats = [
     {
@@ -34,25 +33,25 @@ export default function DashboardOverview() {
       description: "Active prediction tasks",
       icon: "gear" as const,
       tag: "ACTIVE",
-      intent: "success" as const,
+      intent: "positive" as const,
       direction: "up" as const,
     },
     {
-      label: "Total Volume",
-      value: `$${totalVolume.toLocaleString()}`,
-      description: "Total trading volume",
+      label: "Total Answers",
+      value: totalAnswers.toLocaleString(),
+      description: "Total answers across all tasks",
       icon: "proccesor" as const,
-      tag: "VOLUME",
-      intent: "info" as const,
+      tag: "ANSWERS",
+      intent: "neutral" as const,
       direction: "up" as const,
     },
     {
-      label: "Participants",
-      value: totalParticipants.toLocaleString(),
-      description: "Total participants",
+      label: "Categories",
+      value: categoriesCount.toString(),
+      description: "Active categories",
       icon: "boom" as const,
-      tag: "USERS",
-      intent: "warning" as const,
+      tag: "CATEGORIES",
+      intent: "positive" as const,
       direction: "up" as const,
     },
   ];
@@ -80,10 +79,6 @@ export default function DashboardOverview() {
         ))}
       </div>
 
-      <div className="mb-6">
-        <DashboardChart />
-      </div>
-
       {/* Trending Section */}
       <div className="mb-6">
         <TrendingSection />
@@ -91,8 +86,8 @@ export default function DashboardOverview() {
 
       {/* Main 2-column grid section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <SportsLeaderboard />
-        <FinanceLeaderboard />
+        <FakeFinanceLeaderboard />
+        <FakeSportsLeaderboard />
       </div>
     </DashboardPageLayout>
   );
