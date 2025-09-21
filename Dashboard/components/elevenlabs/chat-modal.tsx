@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useVoiceAssistant } from "@/hooks/use-voice-assistant";
+import { useAgentTesting, Agent } from "@/hooks/use-agent-testing";
 
 interface ChatMessage {
   id: string;
@@ -26,9 +27,79 @@ interface ChatModalProps {
   onVoiceStateChange?: (isActive: boolean) => void;
 }
 
+// Agent data from the leaderboards
+const sportsAgents: Agent[] = [
+  {
+    id: 1,
+    name: "@KRIMSON",
+    handle: "Gemini 2.5",
+    streak: "2 WEEKS STREAK 🔥",
+    points: 148,
+    avatar: "/avatars/user_krimson.png",
+    featured: true,
+    subtitle: "2 WEEKS STREAK 🔥"
+  },
+  {
+    id: 2,
+    name: "@MATI",
+    handle: "LLaMa 4 8b",
+    points: 129,
+    avatar: "/avatars/user_mati.png"
+  },
+  {
+    id: 3,
+    name: "@PEK",
+    handle: "Mistral-Large",
+    points: 108,
+    avatar: "/avatars/user_pek.png"
+  },
+  {
+    id: 4,
+    name: "@JOYBOY",
+    handle: "GPT-5",
+    points: 64,
+    avatar: "/avatars/user_joyboy.png"
+  }
+];
+
+const financeAgents: Agent[] = [
+  {
+    id: 1,
+    name: "@MATI",
+    handle: "LLaMa 4 8b",
+    points: 129,
+    avatar: "/avatars/user_mati.png"
+  },
+  {
+    id: 2,
+    name: "@JOYBOY",
+    handle: "GPT-5",
+    points: 64,
+    avatar: "/avatars/user_joyboy.png"
+  },
+  {
+    id: 3,
+    name: "@PEK",
+    handle: "Mistral-Large",
+    points: 108,
+    avatar: "/avatars/user_pek.png"
+  },
+  {
+    id: 4,
+    name: "@KRIMSON",
+    handle: "Gemini 2.5",
+    streak: "2 WEEKS STREAK 🔥",
+    points: 148,
+    avatar: "/avatars/user_krimson.png",
+    featured: true,
+    subtitle: "2 WEEKS STREAK 🔥"
+  }
+];
+
 export function ChatModal({ open, onOpenChange, onVoiceStateChange }: ChatModalProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
+  const { testAgent, testAgentWithQuery, currentTest, isLoading: agentLoading } = useAgentTesting();
   
   const {
     isListening,
@@ -68,7 +139,75 @@ export function ChatModal({ open, onOpenChange, onVoiceStateChange }: ChatModalP
     }
   }, [isListening, isSpeaking, isProcessing, onVoiceStateChange]);
 
-  const handleSendMessage = (content: string) => {
+  // Handle agent testing completion
+  useEffect(() => {
+    if (currentTest && currentTest.isComplete && currentTest.finalResponse) {
+      const finalMessage: ChatMessage = {
+        id: Date.now().toString() + "_final",
+        role: "assistant",
+        content: currentTest.finalResponse,
+        timestamp: new Date(),
+      };
+      
+      setMessages(prev => {
+        // Check if this final message already exists to avoid duplicates
+        const exists = prev.some(msg => msg.content === currentTest.finalResponse);
+        if (!exists) {
+          speak(finalMessage.content);
+          return [...prev, finalMessage];
+        }
+        return prev;
+      });
+    }
+  }, [currentTest, speak]);
+
+  const parseAgentRequest = (content: string): { category?: string; agentRequest?: boolean; isDirectQuestion?: boolean; specificAgent?: string; isRandomRequest?: boolean } => {
+    const lowerContent = content.toLowerCase();
+    
+    // Check for direct questions (ends with ?)
+    const isDirectQuestion = content.trim().endsWith('?');
+    
+    // Check for random request keywords
+    const randomKeywords = ['random', 'give me', 'cool', 'any', 'top'];
+    const isRandomRequest = randomKeywords.some(keyword => lowerContent.includes(keyword)) && lowerContent.includes('prediction');
+    
+    // Check for specific agent names
+    let specificAgent = undefined;
+    for (const agent of [...sportsAgents, ...financeAgents]) {
+      if (lowerContent.includes(agent.name.toLowerCase().replace('@', ''))) {
+        specificAgent = agent.name;
+        break;
+      }
+    }
+    
+    // Check for agent testing keywords
+    const agentKeywords = ['agent', 'prediction', 'predict', 'test', 'top'];
+    const sportsKeywords = ['sports', 'sport', 'game', 'match', 'team', 'player', 'football', 'basketball', 'soccer', 'hockey', 'championship', 'heisman', 'ufc', 'nba', 'finals'];
+    const financeKeywords = ['financial', 'finance', 'money', 'stock', 'crypto', 'bitcoin', 'market', 'economy', 'ipo', 'rippling', 'deel'];
+    
+    const hasAgentKeyword = agentKeywords.some(keyword => lowerContent.includes(keyword));
+    const hasSportsKeyword = sportsKeywords.some(keyword => lowerContent.includes(keyword));
+    const hasFinanceKeyword = financeKeywords.some(keyword => lowerContent.includes(keyword));
+    
+    // If it's a direct question or has prediction keywords, it's likely a prediction request
+    if (isDirectQuestion || hasAgentKeyword || isRandomRequest) {
+      let category = undefined;
+      if (hasSportsKeyword) category = 'sports';
+      else if (hasFinanceKeyword) category = 'financial';
+      
+      return {
+        agentRequest: true,
+        category,
+        isDirectQuestion,
+        specificAgent,
+        isRandomRequest
+      };
+    }
+    
+    return { agentRequest: false };
+  };
+
+  const handleSendMessage = async (content: string) => {
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: "user",
@@ -78,18 +217,79 @@ export function ChatModal({ open, onOpenChange, onVoiceStateChange }: ChatModalP
     
     setMessages(prev => [...prev, userMessage]);
     
-    // Simulate assistant response
-    setTimeout(() => {
-      const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: `I heard you say: "${content.trim()}". This is a demo response that will be spoken aloud.`,
-        timestamp: new Date(),
-      };
+    const parsed = parseAgentRequest(content);
+    
+    if (parsed.agentRequest) {
+      // Handle agent testing request with smart search
+      const agents = parsed.category === 'sports' ? sportsAgents : 
+                   parsed.category === 'financial' ? financeAgents : 
+                   sportsAgents; // Default to sports agents
       
-      setMessages(prev => [...prev, assistantMessage]);
-      speak(assistantMessage.content);
-    }, 1000);
+      // Find specific agent if requested, otherwise pick a random agent
+      let selectedAgent: Agent;
+      
+      if (parsed.specificAgent) {
+        // User requested a specific agent
+        const found = agents.find(a => a.name === parsed.specificAgent);
+        selectedAgent = found || agents[0];
+      } else {
+        // Pick a random agent from the appropriate category
+        const randomIndex = Math.floor(Math.random() * agents.length);
+        selectedAgent = agents[randomIndex];
+        console.log(`Randomly selected agent: ${selectedAgent.name} from ${agents.length} agents`);
+      }
+      
+      // For direct questions, just process without announcement
+      // For random requests, give a simple acknowledgment
+      if (!parsed.isDirectQuestion) {
+        const initialMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: parsed.isRandomRequest ? 
+            `Let me get you a ${parsed.category || ''} prediction...` : 
+            `Processing with Agent ${selectedAgent.name}...`,
+          timestamp: new Date(),
+        };
+        
+        setMessages(prev => [...prev, initialMessage]);
+        speak(initialMessage.content);
+      }
+      
+      // Run the agent test with smart search
+      try {
+        if (parsed.isDirectQuestion) {
+          // Use smart search for direct questions
+          await testAgentWithQuery(selectedAgent, content.trim(), parsed.category);
+        } else {
+          // Use category-based search for general/random requests
+          await testAgent(selectedAgent, undefined, parsed.category);
+        }
+      } catch (error) {
+        const errorMessage: ChatMessage = {
+          id: (Date.now() + 2).toString(),
+          role: "assistant",
+          content: "Sorry, I couldn't get a prediction from the agent right now. Please try again.",
+          timestamp: new Date(),
+        };
+        
+        setMessages(prev => [...prev, errorMessage]);
+        speak(errorMessage.content);
+      }
+      
+    } else {
+      // Default response for non-agent requests
+      setTimeout(() => {
+        const assistantMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: `I heard you say: "${content.trim()}". Try asking me to test a sports or financial prediction agent!`,
+          timestamp: new Date(),
+        };
+        
+        setMessages(prev => [...prev, assistantMessage]);
+        speak(assistantMessage.content);
+      }, 1000);
+    }
   };
 
   const handleSend = () => {
