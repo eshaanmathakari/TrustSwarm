@@ -151,22 +151,22 @@
         }
     ],
     "securityStatus": [{
-            "title": "GUARD BOTS",
-            "value": "124/124",
+            "title": "AGENTS",
+            "value": "4/4",
             "status": "[RUNNING...]",
             "variant": "success"
         },
         {
-            "title": "FIREWALL",
+            "title": "UPTIME",
             "value": "99.9%",
-            "status": "[BLOCKED]",
+            "status": "[RUNNING...]",
             "variant": "success"
         },
         {
-            "title": "HTML WARNINGS",
+            "title": "INTEGRITY",
             "value": "12042",
-            "status": "[ACCESSIBILITY]",
-            "variant": "warning"
+            "status": "[OK]",
+            "variant": "success"
         }
     ],
     "notifications": [{
