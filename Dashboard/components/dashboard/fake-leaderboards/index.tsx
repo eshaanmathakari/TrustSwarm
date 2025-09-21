@@ -1,10 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trophy, DollarSign } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Trophy, DollarSign, Zap } from "lucide-react";
+import { AgentTestingModal } from "@/components/dashboard/agent-testing-modal";
+import type { Agent } from "@/hooks/use-agent-testing";
 
 // Fake data for sports leaderboard (AI agents)
 const sportsAgents = [
@@ -83,106 +86,160 @@ const financeAgents = [
 ];
 
 export function FakeSportsLeaderboard() {
+    const [isTestModalOpen, setIsTestModalOpen] = useState(false);
+    const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+
+    const handleTestAgent = (agent: Agent) => {
+        setSelectedAgent(agent);
+        setIsTestModalOpen(true);
+    };
+
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Trophy className="w-5 h-5" />
-                    Sports Leaderboard
-                    <Badge variant="secondary" className="ml-auto">
-                        {sportsAgents.length} AGENTS
-                    </Badge>
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="space-y-3">
-                    {sportsAgents.map((agent, index) => (
-                        <div key={agent.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                            <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                                <span className="text-xs font-bold text-primary">
-                                    {index + 1}
-                                </span>
-                            </div>
-
-                            <Avatar className="w-8 h-8 flex-shrink-0">
-                                <AvatarImage src={agent.avatar} alt={agent.name} />
-                                <AvatarFallback>{agent.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-
-                            <div className="flex-1 min-w-0">
-                                <div className="font-medium text-sm truncate mb-1">
-                                    {agent.name}
+        <>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Trophy className="w-5 h-5" />
+                        Sports Leaderboard
+                        <Badge variant="secondary" className="ml-auto">
+                            {sportsAgents.length} AGENTS
+                        </Badge>
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-3">
+                        {sportsAgents.map((agent, index) => (
+                            <div key={agent.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                                <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <span className="text-xs font-bold text-primary">
+                                        {index + 1}
+                                    </span>
                                 </div>
-                                <div className="text-xs text-muted-foreground">
-                                    {agent.handle}
-                                </div>
-                            </div>
 
-                            <div className="text-right flex-shrink-0">
-                                <div className="font-bold text-sm">{agent.points} POINTS</div>
-                                {agent.streak && (
-                                    <div className="text-xs text-orange-500 font-medium">
-                                        {agent.streak}
+                                <Avatar className="w-8 h-8 flex-shrink-0">
+                                    <AvatarImage src={agent.avatar} alt={agent.name} />
+                                    <AvatarFallback>{agent.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+
+                                <div className="flex-1 min-w-0">
+                                    <div className="font-medium text-sm truncate mb-1">
+                                        {agent.name}
                                     </div>
-                                )}
+                                    <div className="text-xs text-muted-foreground">
+                                        {agent.handle}
+                                    </div>
+                                </div>
+
+                                <div className="text-right flex-shrink-0 flex items-center gap-2">
+                                    <div>
+                                        <div className="font-bold text-sm">{agent.points} POINTS</div>
+                                        {agent.streak && (
+                                            <div className="text-xs text-orange-500 font-medium">
+                                                {agent.streak}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleTestAgent(agent)}
+                                        className="gap-1 h-7 px-2"
+                                    >
+                                        <Zap className="w-3 h-3" />
+                                        Test
+                                    </Button>
+                                </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
-            </CardContent>
-        </Card>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+            
+            <AgentTestingModal
+                isOpen={isTestModalOpen}
+                onOpenChange={setIsTestModalOpen}
+                agent={selectedAgent}
+            />
+        </>
     );
 }
 
 export function FakeFinanceLeaderboard() {
+    const [isTestModalOpen, setIsTestModalOpen] = useState(false);
+    const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+
+    const handleTestAgent = (agent: Agent) => {
+        setSelectedAgent(agent);
+        setIsTestModalOpen(true);
+    };
+
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="w-5 h-5" />
-                    Finance Leaderboard
-                    <Badge variant="secondary" className="ml-auto">
-                        {financeAgents.length} AGENTS
-                    </Badge>
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="space-y-3">
-                    {financeAgents.map((agent, index) => (
-                        <div key={agent.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                            <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                                <span className="text-xs font-bold text-primary">
-                                    {index + 1}
-                                </span>
-                            </div>
-
-                            <Avatar className="w-8 h-8 flex-shrink-0">
-                                <AvatarImage src={agent.avatar} alt={agent.name} />
-                                <AvatarFallback>{agent.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-
-                            <div className="flex-1 min-w-0">
-                                <div className="font-medium text-sm truncate mb-1">
-                                    {agent.name}
+        <>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <DollarSign className="w-5 h-5" />
+                        Finance Leaderboard
+                        <Badge variant="secondary" className="ml-auto">
+                            {financeAgents.length} AGENTS
+                        </Badge>
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-3">
+                        {financeAgents.map((agent, index) => (
+                            <div key={agent.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                                <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <span className="text-xs font-bold text-primary">
+                                        {index + 1}
+                                    </span>
                                 </div>
-                                <div className="text-xs text-muted-foreground">
-                                    {agent.handle}
-                                </div>
-                            </div>
 
-                            <div className="text-right flex-shrink-0">
-                                <div className="font-bold text-sm">{agent.points} POINTS</div>
-                                {agent.streak && (
-                                    <div className="text-xs text-orange-500 font-medium">
-                                        {agent.streak}
+                                <Avatar className="w-8 h-8 flex-shrink-0">
+                                    <AvatarImage src={agent.avatar} alt={agent.name} />
+                                    <AvatarFallback>{agent.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+
+                                <div className="flex-1 min-w-0">
+                                    <div className="font-medium text-sm truncate mb-1">
+                                        {agent.name}
                                     </div>
-                                )}
+                                    <div className="text-xs text-muted-foreground">
+                                        {agent.handle}
+                                    </div>
+                                </div>
+
+                                <div className="text-right flex-shrink-0 flex items-center gap-2">
+                                    <div>
+                                        <div className="font-bold text-sm">{agent.points} POINTS</div>
+                                        {agent.streak && (
+                                            <div className="text-xs text-orange-500 font-medium">
+                                                {agent.streak}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleTestAgent(agent)}
+                                        className="gap-1 h-7 px-2"
+                                    >
+                                        <Zap className="w-3 h-3" />
+                                        Test
+                                    </Button>
+                                </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
-            </CardContent>
-        </Card>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+            
+            <AgentTestingModal
+                isOpen={isTestModalOpen}
+                onOpenChange={setIsTestModalOpen}
+                agent={selectedAgent}
+            />
+        </>
     );
 }
 

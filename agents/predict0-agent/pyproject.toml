@@ -8,7 +8,6 @@ dependencies = [
     "langchain-experimental==0.3.4",
     "langchain-groq==0.3.4",
     "langchain-mcp-adapters==0.1.7",
-    "langchain-openai==0.3.26",
     "langchain-mistralai==0.2.12",
     "uv>=0.7.17",
 ]

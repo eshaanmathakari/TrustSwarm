@@ -1,6 +1,11 @@
 [agent]
-name = "predict2"
-version = "1.0.0"
+name = "firecrawl"
+version = "0.0.1"
+description = "Agent that can search & scrape the web, providing easy to parse markdown"
+
+[options.FIRECRAWL_API_KEY]
+type = "string"
+description = "FIRECRAWL API KEY for the service"
 
 [options.MODEL_API_KEY]
 type = "string"
@@ -9,7 +14,7 @@ description = "API key for the model provider"
 [options.MODEL_NAME]
 type = "string"
 description = "What model to use (e.g 'gpt-4.1')"
-default = "llama-3.3-70b-versatile"
+default = "mistral-small-2506"
 
 [options.MODEL_MAX_TOKENS]
 type = "string"

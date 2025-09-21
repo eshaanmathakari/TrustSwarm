@@ -1,0 +1,11 @@
+[agent]
+name = "scoring"
+version = "1.0.0"
+
+[options.TIMEOUT_MS]
+type = "string"
+description = "Connection/tool timeouts in ms"
+default = "300"
+
+[runtimes.executable]
+command = ["bash", "-c", "./run_agent.sh main.py"]

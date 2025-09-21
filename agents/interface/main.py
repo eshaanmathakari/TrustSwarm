@@ -57,6 +57,7 @@ async def main():
         request = json.loads(user_request_json)
         task_type = request.get("task")
         payload = request.get("payload", {})
+        request_data = payload.get("request_data", {})
         
         base_url = os.getenv("CORAL_SSE_URL")
         agentID = os.getenv("CORAL_AGENT_ID")
@@ -82,14 +83,40 @@ async def main():
         if task_type == "single":
             list_agents_str = await list_agents_tool.ainvoke({})
             list_agents_result = json.loads(list_agents_str)
-            agent_name = payload.get("agent_name")
-            target_agent = next((a for a in list_agents_result.get('agents', []) if a['id'] == agent_name), None)
-            if not target_agent: raise ValueError(f"Agent '{agent_name}' not found.")
             
-            agent_response = await delegate_task_in_new_thread(
-                create_thread_tool, send_message_tool, wait_for_mentions_tool, target_agent, payload.get("request_data")
+            # Find the target prediction agent
+            predict_agent_name = payload.get("agent_name")
+            predict_agent = next((a for a in list_agents_result.get('agents', []) if a['id'] == predict_agent_name), None)
+            if not predict_agent: raise ValueError(f"Predict agent '{predict_agent_name}' not found.")
+            
+            # Find the scoring agent
+            scoring_agent = next((a for a in list_agents_result.get('agents', []) if a['id'] == 'scoring'), None)
+            if not scoring_agent: raise ValueError("Scoring agent 'scoring' not found.")
+
+            # === STEP 1: DELEGATE TO PREDICT AGENT ===
+            print(f"--- INTERFACE: [Step 1/2] Delegating task to '{predict_agent_name}'... ---")
+            prediction_str = await delegate_task_in_new_thread(
+                create_thread_tool, send_message_tool, wait_for_mentions_tool, 
+                predict_agent, request_data
             )
-            final_result = {"source": agent_name, "response": json.loads(agent_response)}
+            prediction_obj = json.loads(prediction_str)
+            print("--- INTERFACE: Received prediction successfully. ---")
+
+            # === STEP 2: DELEGATE PREDICTION TO SCORING AGENT ===
+            print("--- INTERFACE: [Step 2/2] Delegating prediction to 'scoring' agent... ---")
+            # Note: We pass the *entire object* from the predict agent to the scoring agent
+            score_str = await delegate_task_in_new_thread(
+                create_thread_tool, send_message_tool, wait_for_mentions_tool,
+                scoring_agent, prediction_obj
+            )
+            score_obj = json.loads(score_str)
+            print("--- INTERFACE: Received score successfully. ---", score_obj, prediction_obj)
+
+            # === STEP 3: COMBINE RESULTS ===
+            # Inject the score object into the original prediction's response
+            prediction_obj['scoring'] = score_obj
+            final_result = prediction_obj
+            print("--- INTERFACE: Combined prediction and score. ---")
 
         # --- BENCHMARK TASK (RE-ARCHITECTED) ---
         elif task_type == "benchmark":

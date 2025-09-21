@@ -10,5 +10,6 @@ dependencies = [
     "langchain-mcp-adapters==0.1.7",
     "langchain-openai==0.3.26",
     "langchain-mistralai==0.2.12",
+    "langchain-google-genai",
     "uv>=0.7.17",
 ]

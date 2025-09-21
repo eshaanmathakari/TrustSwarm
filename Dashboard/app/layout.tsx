@@ -82,10 +82,12 @@ export default function RootLayout({
           </SidebarProvider>
 
           {/* ElevenLabs Integration - Outside layout constraints */}
-          <FloatingActionButton 
-            onClick={() => setIsChatOpen(true)} 
-            isActive={isChatOpen && isVoiceActive}
-          />
+          {!isChatOpen && (
+            <FloatingActionButton 
+              onClick={() => setIsChatOpen(true)} 
+              isActive={isVoiceActive}
+            />
+          )}
           <ChatModal 
             open={isChatOpen} 
             onOpenChange={setIsChatOpen}

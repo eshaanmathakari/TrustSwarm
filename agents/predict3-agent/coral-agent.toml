@@ -1,5 +1,5 @@
 [agent]
-name = "predict2"
+name = "predict3"
 version = "1.0.0"
 
 [options.MODEL_API_KEY]
@@ -9,7 +9,7 @@ description = "API key for the model provider"
 [options.MODEL_NAME]
 type = "string"
 description = "What model to use (e.g 'gpt-4.1')"
-default = "llama-3.3-70b-versatile"
+default = "mistral-medium-latest"
 
 [options.MODEL_MAX_TOKENS]
 type = "string"

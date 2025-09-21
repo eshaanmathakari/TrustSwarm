@@ -8,4 +8,13 @@ path = "agents/predict1-agent"
 path = "agents/predict2-agent"
 
 [[local-agent]]
+path = "agents/predict3-agent"
+
+[[local-agent]]
 path = "agents/interface"
+
+[[local-agent]]
+path = "agents/firecrawl"
+
+[[local-agent]]
+path = "agents/scoring"
