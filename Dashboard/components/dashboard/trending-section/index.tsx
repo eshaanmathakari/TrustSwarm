@@ -67,17 +67,15 @@ export function TrendingSection() {
                         </div>
                     ) : (
                         tasks.map((task, index) => (
-                            <div key={task.id} className="space-y-2">
+                            <div key={`${task.title}-${task.created_at}-${index}`} className="space-y-2">
                                 <div className="flex items-start justify-between">
                                     <div className="flex-1">
                                         <h4 className="font-medium text-sm leading-tight">
                                             {task.title}
                                         </h4>
-                                        {task.description && (
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                                {task.description}
-                                            </p>
-                                        )}
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            {task.category} • {task.event_ticker}
+                                        </p>
                                     </div>
                                     <Badge variant="secondary" className="ml-2 text-xs">
                                         #{index + 1}
@@ -85,23 +83,17 @@ export function TrendingSection() {
                                 </div>
 
                                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                    {task.end_date && (
-                                        <div className="flex items-center gap-1">
-                                            <Calendar className="w-3 h-3" />
-                                            <span>{new Date(task.end_date).toLocaleDateString()}</span>
-                                        </div>
-                                    )}
-                                    {task.participants && (
-                                        <div className="flex items-center gap-1">
-                                            <Users className="w-3 h-3" />
-                                            <span>{task.participants} participants</span>
-                                        </div>
-                                    )}
-                                    {task.total_volume && (
-                                        <div className="text-xs">
-                                            Volume: ${task.total_volume.toLocaleString()}
-                                        </div>
-                                    )}
+                                    <div className="flex items-center gap-1">
+                                        <Calendar className="w-3 h-3" />
+                                        <span>{new Date(task.created_at).toLocaleDateString()}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <Users className="w-3 h-3" />
+                                        <span>{task.answers?.length || 0} answers</span>
+                                    </div>
+                                    <div className="text-xs">
+                                        Sources: {task.sources?.length || 0}
+                                    </div>
                                 </div>
 
                                 {index < tasks.length - 1 && (
