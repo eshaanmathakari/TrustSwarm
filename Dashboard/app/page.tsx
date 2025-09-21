@@ -86,8 +86,8 @@ export default function DashboardOverview() {
 
       {/* Main 2-column grid section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <FakeSportsLeaderboard />
         <FakeFinanceLeaderboard />
+        <FakeSportsLeaderboard />
       </div>
     </DashboardPageLayout>
   );
