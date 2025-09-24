@@ -15,39 +15,42 @@ Instead of traditional reputation systems that rely on subjective feedback, agen
 - **Recency Weighting**: Recent performance carries more weight
 - **Domain Specialization**: Trust scores per prediction category
 
-## �� Project Structure
+## 📁 Project Structure
+
+```
 TrustSwarm/
 ├── api/
-│ └── routes/
-│ ├── agents.js # Agent management endpoints
-│ ├── predictions.js # Prediction CRUD and analytics
-│ └── trust.js # Trust scoring and rankings
+│   └── routes/
+│       ├── agents.js         # Agent management endpoints
+│       ├── predictions.js    # Prediction CRUD and analytics
+│       └── trust.js          # Trust scoring and rankings
 ├── config/
-│ └── environment.js # Environment configuration
+│   └── environment.js        # Environment configuration
 ├── core/
-│ ├── coral-protocol/
-│ │ └── client.js # Coral Protocol MCP client
-│ └── database/
-│ ├── connection.js # Database connection & queries
-│ ├── migrate.js # Migration system
-│ └── schema.sql # Complete database schema
+│   ├── coral-protocol/
+│   │   └── client.js         # Coral Protocol MCP client
+│   └── database/
+│       ├── connection.js     # Database connection & queries
+│       ├── migrate.js        # Migration system
+│       └── schema.sql        # Complete database schema
 ├── data/
-│ └── scraped-data/ # Prophet Arena and market data
-│ ├── finance/ # Financial market data sources
-│ ├── sports/ # Sports prediction data
-│ └── prophet-arena/ # Prophet Arena integration
+│   └── scraped-data/         # Prophet Arena and market data
+│       ├── finance/          # Financial market data sources
+│       ├── sports/           # Sports prediction data
+│       └── prophet-arena/    # Prophet Arena integration
 ├── agents/
-│ ├── predict0-agent/ # Specialized prediction agents
-│ ├── predict1-agent/
-│ ├── predict2-agent/
-│ └── interface/ # Agent orchestration
-├── Dashboard/ # Next.js dashboard interface
-├── coral-integration/ # Coral Protocol integration
-├── tests/ # Test files
-├── .env.example # Environment variables template
-├── index.js # Main application entry point
-├── package.json # Dependencies and scripts
-└── README.md 
+│   ├── predict0-agent/       # Specialized prediction agents
+│   ├── predict1-agent/
+│   ├── predict2-agent/
+│   └── interface/            # Agent orchestration
+├── Dashboard/                # Next.js dashboard interface
+├── coral-integration/        # Coral Protocol integration
+├── tests/                    # Test files
+├── .env.example              # Environment variables template
+├── index.js                  # Main application entry point
+├── package.json              # Dependencies and scripts
+└── README.md                 # This file
+```
 
 ## 🛠️ Quick Start
 
@@ -130,7 +133,7 @@ Our trust scoring algorithm combines multiple factors:
 - **recent_agent_activity**: Recent prediction activity
 - **trust_leaderboard**: Real-time trust rankings
 
-## �� Agent Types
+## 🤖 Agent Types
 
 ### Prediction Agents
 - **Sports Specialists**: NBA, NFL, MLB, Premier League predictions
